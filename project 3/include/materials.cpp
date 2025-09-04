@@ -11,6 +11,9 @@ Color MtlBlinn::Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lig
 {
 	Vec3f camera = -ray.dir;
 
+                // printf("Current material: %s\n", hInfo.node->GetMaterial()->GetName());
+
+
 
     float gloss = this->Glossiness();
     Vec3f lightDir;
@@ -21,7 +24,8 @@ Color MtlBlinn::Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lig
     
 	Color baseColor = this->Diffuse();
     Color reflectColor = this->Specular();
-    
+        // Color reflectColor = Color(1,1,1);
+
 
 
     for(int i = 0; i < lights.size(); i++){

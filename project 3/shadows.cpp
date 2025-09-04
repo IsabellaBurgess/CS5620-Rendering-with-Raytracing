@@ -116,10 +116,12 @@ void BeginRender( RenderScene *scene )
    
     // sceneImage.ComputeZBufferImage();
     // sceneImage.SaveZImage("project2ZBuffer.png");
-    sceneImage.SaveImage("project2.png");
+    sceneImage.SaveImage("renderedImage.png");
 }
 
 void StopRender (){}
+
+
 
 void traceRaycer(int i, Matrix4f wsTransMatrix, RenderScene *scene){
 
@@ -188,37 +190,75 @@ int main (int argc, char** argv){
 }
 
 
+bool Sphere::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
+    //Quadratic equation info
+    //Assume sphere is at 0, 0, 0, radius = 1
+
+    float a = ray.dir.Dot(ray.dir);
+    float b = 2.0*(ray.dir.Dot(ray.p));
+    float c = ((ray.p.Dot(ray.p)) - 1.0);
+
+    // printf("a b c = %f %f %f\n", a, b, c);
+    float delta = (b*b) - (4.0*(a*c));
+    float t = (-b - sqrt(delta))/(2.0*a);
+
+    // printf("delta = %f\n", delta);
+    if(t < 0)
+    {
+        // printf("false\n");
+        return false;
+    }
+   
+    if (t > 0)
+    {    
+        if(t < hInfo.z ){
+            hInfo.z = t;
+            hInfo.p = ray.p + ray.dir*t;
+
+            hInfo.N = Normalize(hInfo.p);
+            return true;
+        }
+        // printf("true\n");
+   
+    }
+    return false;
+}
+
 bool treeTraversal( Node *node, Ray ray, HitInfo &hInfo)
 {
     bool hitTracker = false;
     Ray transformedRay = node->ToNodeCoords(ray);
-
-    for(int i = 0; i < node->GetNumChild(); i++){
-        Node *child = node->GetChild(i);
-        if(treeTraversal(child, transformedRay, hInfo) == true)
-        {
-            hitTracker = true;
-            // hInfo.node = child;
-        }
-    }
-   
-    // printf("Parent node: %s\n", node->GetName());
-
+    // hInfo.node = node;
     Object* currentObj = node->GetNodeObj();
    
     // printf("in hitObject\n");
    
     if(currentObj){
         // printf("true2\n");
+
         if(currentObj->IntersectRay(transformedRay, hInfo, 1))
         {
             hitTracker = true;
             hInfo.node = node;
+
             // printf("true %d\n ", hitTracker);
         }
     }
 
-    node->FromNodeCoords(hInfo);
+    for(int i = 0; i < node->GetNumChild(); i++){
+        Node *child = node->GetChild(i);
+
+        if(treeTraversal(child, transformedRay, hInfo) == true)
+        {
+
+            hitTracker = true;
+            hInfo.node = child;
+
+        }
+    }
+
+    if(hitTracker)
+        node->FromNodeCoords(hInfo);
     return hitTracker;
 }
 
