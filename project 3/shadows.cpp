@@ -184,7 +184,7 @@ void traceRaycer(int i, Matrix4f wsTransMatrix, RenderScene *scene){
 int main (int argc, char** argv){   
     RenderScene scene;
    
-    LoadScene(scene, "testScene.xml");
+    LoadScene(scene, "boxScene.xml");
 
     ShowViewport(&scene);
 }
@@ -269,10 +269,10 @@ float GenLight::Shadow( Ray const &ray, float t_max ){
 
     if(treeTraversal(&rootNode, ray, hitInf))
     {
-        // if(hitInf.z < t_max){
+        if(hitInf.z >= t_max){
         //    printf("hi\n");
             return 0.0;
-        // }
+        }
     }
 
     return 1.0;
