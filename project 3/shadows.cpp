@@ -243,7 +243,7 @@ bool treeTraversal( Node *node, Ray ray, HitInfo &hInfo)
         {
 
             hitTracker = true;
-            // node->FromNodeCoords(hInfo);
+            node->FromNodeCoords(hInfo);
 
             // hInfo.node = child;
         // node->FromNodeCoords(hInfo);
@@ -256,7 +256,7 @@ bool treeTraversal( Node *node, Ray ray, HitInfo &hInfo)
         if(currentObj->IntersectRay(transformedRay, hInfo, 1))
         {
             hitTracker = true;
-                        node->FromNodeCoords(hInfo);
+            node->FromNodeCoords(hInfo);
 
             hInfo.node = node;
 
@@ -264,10 +264,24 @@ bool treeTraversal( Node *node, Ray ray, HitInfo &hInfo)
         }
     }
 
-    // if(hitTracker)
-    //     node->FromNodeCoords(hInfo);
-            // printf("Node name is %s\n", hInfo.node->GetName());
-
     return hitTracker;
 }
 
+
+float GenLight::Shadow( Ray const &ray, float t_max ){
+    HitInfo hitInf = HitInfo();
+    hitInf.Init();
+ 
+    // Ray rayCopy;
+    // rayCopy.dir = ray.dir;
+    // rayCopy.p = Vec3f(ray.p + (ray.dir * 0.5));
+    if(treeTraversal(&rootNode, ray, hitInf))
+    {
+        if(hitInf.z <= t_max){
+        //    printf("hi\n");
+            return 0.0;
+        }
+    }
+
+    return 1.0;
+}

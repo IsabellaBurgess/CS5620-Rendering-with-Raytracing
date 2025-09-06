@@ -8,27 +8,29 @@
 #include "cy/cyVector.h"
 
 #include "lights.h"
+#include "scene.h"
 
 extern RenderScene scene;
 extern Node rootNode;
+
+using namespace cy;
 
 
 bool shadowRay(Node *node, Ray ray, HitInfo &hInfo){
     bool hitTracker = false;
     Ray transformedRay = node->ToNodeCoords(ray);
     // hInfo.node = node;
-    // Object* currentObj = node->GetNodeObj();
+    Object* currentObj = node->GetNodeObj();
    
     // printf("in hitObject\n");
    
-    if(node->GetNodeObj() != nullptr){
+    if(currentObj != nullptr){
         // printf("true2\n");
-        Object* currentObj = node->GetNodeObj();
 
         if(currentObj->IntersectRay(transformedRay, hInfo, 1))
         {
             // printf("true %d\n ", hitTracker);
-    node->FromNodeCoords(hInfo);
+            node->FromNodeCoords(hInfo);
 
             return true;
 
@@ -40,7 +42,7 @@ bool shadowRay(Node *node, Ray ray, HitInfo &hInfo){
 
         if(shadowRay(child, transformedRay, hInfo) == true)
         {
-            child->FromNodeCoords(hInfo);
+            node->FromNodeCoords(hInfo);
 
             return true;
 
@@ -50,18 +52,3 @@ bool shadowRay(Node *node, Ray ray, HitInfo &hInfo){
     return false;
 }
 
-
-float GenLight::Shadow( Ray const &ray, float t_max ){
-    HitInfo hitInf = HitInfo();
-    hitInf.Init();
-
-    if(shadowRay(&rootNode, ray, hitInf))
-    {
-        if(hitInf.z <= t_max){
-        //    printf("hi\n");
-            return 0.0;
-        }
-    }
-
-    return 1.0;
-}
