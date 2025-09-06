@@ -30,7 +30,8 @@ Color Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lights);
 void SetViewportMaterial(int subMtlID=0);
 
 // bool hitTracker;
-const int numThreads = thread::hardware_concurrency();
+const int numThreads = 1;
+// const int numThreads = thread::hardware_concurrency();
 
 //Scene information
 Camera cam;
@@ -157,9 +158,11 @@ void traceRaycer(int i, Matrix4f wsTransMatrix, RenderScene *scene){
     bool hit = treeTraversal(&rootNode, currentRay, hitInf);         
     Color color;
 
+        // printf("Node name is %s\n", hitInf.node->GetName());
 
     // printf("%d\n", hitTracker);
-    if(hit == true)
+    if(hit == true && hitInf.node->GetNodeObj() != nullptr)
+
     {
         // printf("true\n");
             // printf("hit node: %s\n", hitInf.node->GetName());
@@ -209,7 +212,7 @@ bool Sphere::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
         return false;
     }
    
-    if (t > 0)
+    if (t >= 0)
     {    
         if(t < hInfo.z ){
             hInfo.z = t;
@@ -233,27 +236,28 @@ bool treeTraversal( Node *node, Ray ray, HitInfo &hInfo)
    
     // printf("in hitObject\n");
    
-    if(currentObj){
-        // printf("true2\n");
-
-        if(currentObj->IntersectRay(transformedRay, hInfo, 1))
-        {
-            hitTracker = true;
-            hInfo.node = node;
-
-            // printf("true %d\n ", hitTracker);
-        }
-    }
-
     for(int i = 0; i < node->GetNumChild(); i++){
         Node *child = node->GetChild(i);
-
+        
         if(treeTraversal(child, transformedRay, hInfo) == true)
         {
 
             hitTracker = true;
             hInfo.node = child;
+        // node->FromNodeCoords(hInfo);
 
+        }
+    }
+
+    if(currentObj != nullptr){
+
+        if(currentObj->IntersectRay(transformedRay, hInfo, 1))
+        {
+            hitTracker = true;
+            hInfo.node = node;
+            // node->FromNodeCoords(hInfo);
+
+            // printf("true %d\n ", hitTracker);
         }
     }
 
@@ -262,24 +266,55 @@ bool treeTraversal( Node *node, Ray ray, HitInfo &hInfo)
     return hitTracker;
 }
 
+bool shadowRay(Node *node, Ray ray, HitInfo &hInfo){
+    bool hitTracker = false;
+    Ray transformedRay = node->ToNodeCoords(ray);
+    // hInfo.node = node;
+    // Object* currentObj = node->GetNodeObj();
+   
+    // printf("in hitObject\n");
+   
+    if(node->GetNodeObj() != nullptr){
+        // printf("true2\n");
+        Object* currentObj = node->GetNodeObj();
+
+        if(currentObj->IntersectRay(transformedRay, hInfo, 1))
+        {
+            // printf("true %d\n ", hitTracker);
+    node->FromNodeCoords(hInfo);
+
+            return true;
+
+        }
+    }
+    for(int i = 0; i < node->GetNumChild(); i++){
+        Node *child = node->GetChild(i);
+            // printf("true %d\n ", hitTracker);
+
+        if(treeTraversal(child, transformedRay, hInfo) == true)
+        {
+            child->FromNodeCoords(hInfo);
+
+            return true;
+
+        }
+    }
+
+    return false;
+}
+
 
 float GenLight::Shadow( Ray const &ray, float t_max ){
     HitInfo hitInf = HitInfo();
     hitInf.Init();
 
-    if(treeTraversal(&rootNode, ray, hitInf))
-    {
-        if(hitInf.z >= t_max){
-        //    printf("hi\n");
-            return 0.0;
-        }
-    }
+    // if(treeTraversal(&rootNode, ray, hitInf))
+    // {
+    //     if(hitInf.z <= t_max){
+    //     //    printf("hi\n");
+    //         return 0.0;
+    //     }
+    // }
 
     return 1.0;
 }
-
-
-
-
-
-
