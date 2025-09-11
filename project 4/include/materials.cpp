@@ -1,4 +1,5 @@
 #include "materials.h"
+#include "ray.h"
 #include "cy/cyMatrix.h"
 #include "cy/cyVector.h"
 
@@ -6,14 +7,11 @@ using namespace cy;
 
 extern MaterialList matList; 
 extern Camera cam;
+extern calculateRay rayCalculation; 
 
-Color MtlBlinn::Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lights) const
+Color MtlBlinn::Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lights, int bounceNum) const
 {
 	Vec3f camera = -ray.dir;
-
-                // printf("Current material: %s\n", hInfo.node->GetMaterial()->GetName());
-
-
 
     float gloss = this->Glossiness();
     Vec3f lightDir;
@@ -23,11 +21,27 @@ Color MtlBlinn::Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lig
     Color blinnColor = Color(0,0,0);
     
 	Color baseColor = this->Diffuse();
-    Color reflectColor = this->Specular();
-        // Color reflectColor = Color(1,1,1);
+    Color specularColor = this->Specular();
+        // Color specularColor = Color(1,1,1);
+    Vec3f n = hInfo.N;
 
+    if(this->reflection != Color(0, 0, 0))
+    {
+        Vec3f reflectDir = 2*((n%camera)*(n - camera));
 
+        Ray reflectRay;
+        reflectRay.p = hInfo.p;
+        reflectRay.dir = reflectDir;
 
+        HitInfo reflectHit = HitInfo();
+        reflectHit.Init();
+
+        //create a shootSecondaryRay method. pass in the bounce number, subtract 1 each time. 
+        //thats it thats the only difference. check that bounce number is > 0 
+        Color reflection = rayCalculation.shootRay(reflectRay, reflectHit) * this->reflection;
+        return reflection;
+    }
+    
     for(int i = 0; i < lights.size(); i++){
         Light* currentLight = lights.at(i);
         Color intensity = currentLight->Illuminate(hInfo.p, hInfo.N);
@@ -41,7 +55,6 @@ Color MtlBlinn::Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lig
         else{
             lightDir = -currentLight->Direction(hInfo.p);
 
-            Vec3f n = hInfo.N;
             Vec3f h = Normalize(lightDir+camera);
             
             // printf("Normals are [%f, %f, %f]\n", n.x, n.y, n.z);
@@ -52,7 +65,7 @@ Color MtlBlinn::Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lig
 
             float cosTheta = Max((n % lightDir), 0.0f);
                 
-            Color specularLight =  reflectColor*pow(cosPhi, gloss);
+            Color specularLight =  specularColor*pow(cosPhi, gloss);
             Color difuseLight = (cosTheta*baseColor);
             blinnColor += (intensity*(difuseLight + specularLight));
 
@@ -64,12 +77,12 @@ Color MtlBlinn::Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lig
     return blinnColor + ambientColor;
 }
 
-Color MtlPhong::Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lights) const
+Color MtlPhong::Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lights, int bounceNum) const
 {
     return Color();
 }
 
-Color MtlGGX::Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lights) const
+Color MtlMicrofacet::Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lights, int bounceNum) const
 {
     return Color();
 }

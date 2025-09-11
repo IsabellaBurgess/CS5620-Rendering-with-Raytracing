@@ -9,11 +9,14 @@
 
 #include "lights.h"
 #include "scene.h"
+#include "ray.h"
 
 extern RenderScene scene;
 extern Node rootNode;
 
 using namespace cy;
+
+extern calculateRay rayCalculation; 
 
 
 bool shadowRay(Node *node, Ray ray, HitInfo &hInfo){
@@ -52,3 +55,18 @@ bool shadowRay(Node *node, Ray ray, HitInfo &hInfo){
     return false;
 }
 
+
+float GenLight::Shadow( Ray const &ray, float t_max ){
+    HitInfo hitInf = HitInfo();
+    hitInf.Init();
+
+    if(rayCalculation.treeTraversal(&rootNode, ray, hitInf))
+    {
+        if(hitInf.z <= t_max){
+        //    printf("hi\n");
+            return 0.0;
+        }
+    }
+
+    return 1.0;
+}

@@ -19,14 +19,15 @@
 #include "include/lights.h"
 
 #include "include/lodepng.h"
+#include "include/ray.h"
 
 using namespace std;
+using namespace cy;
 
 int LoadScene( RenderScene &scene, char const *filename );
 void ShowViewport( RenderScene *scene );
-bool treeTraversal( Node *node, Ray ray, HitInfo &hInfo);
-void traceRaycer(int i, Matrix4f wsTransMatrix);
-Color Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lights);
+void initalRays(int i, Matrix4f wsTransMatrix); 
+
 void SetViewportMaterial(int subMtlID=0);
 
 // const int numThreads = 1;
@@ -39,6 +40,7 @@ Node rootNode;
 MaterialList matList; 
 LightList lightList;
 
+calculateRay rayCalculation; 
 RenderScene scene;
 
 float *zBuf;
@@ -48,6 +50,15 @@ double wsWidth;
 float imageWidth;
 float imageHeight;
 int camOffset = 1;
+int bounceNum = 1;
+
+
+int main (int argc, char** argv){   
+   
+    LoadScene(scene, "boxScene.xml");
+
+    ShowViewport(&scene);
+}
 
 void BeginRender( RenderScene *scene )
 {
@@ -105,7 +116,7 @@ void BeginRender( RenderScene *scene )
             {
                 break;
             }
-            traceRaycer(pixelIndex, wsTransMatrix);
+            initalRays(pixelIndex, wsTransMatrix);
         }
     };
             
@@ -121,11 +132,7 @@ void BeginRender( RenderScene *scene )
     sceneImage.SaveImage("renderedImage.png");
 }
 
-void StopRender (){}
-
-
-
-void traceRaycer(int i, Matrix4f wsTransMatrix){
+void initalRays(int i, Matrix4f wsTransMatrix){
 
     int x = i%(int)imageWidth;
     int y = i/imageWidth;
@@ -156,132 +163,15 @@ void traceRaycer(int i, Matrix4f wsTransMatrix){
     HitInfo hitInf = HitInfo();
     hitInf.Init();
 
-    bool hit = treeTraversal(&rootNode, currentRay, hitInf);         
-    Color color;
-
-        // printf("Node name is %s\n", hitInf.node->GetName());
-
-    // printf("%d\n", hitTracker);
-    if(hit == true && hitInf.node->GetNodeObj() != nullptr)
-
-    {
-        // printf("true\n");
-            // printf("hit node: %s\n", hitInf.node->GetName());
-        const Material *currentMat = hitInf.node->GetMaterial();
-        color = currentMat->Shade(currentRay, hitInf, lightList);
-        // color = Color24(1, 200, 255);
-    }
-
-    else{
-        color.SetBlack();
-    }
-
+    Color finalColor = rayCalculation.shootRay(currentRay, hitInf);
     int numPixel = y*imageWidth + x;
 
-    pixels[numPixel] = (Color24) color;
+    pixels[numPixel] = (Color24) finalColor;
     zBuf[numPixel] = hitInf.z;
     scene.renderImage.IncrementNumRenderPixel(1);
 
 }
 
-
-int main (int argc, char** argv){   
-   
-    LoadScene(scene, "boxScene.xml");
-
-    ShowViewport(&scene);
-}
+void StopRender (){}
 
 
-bool Sphere::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
-    //Quadratic equation info
-    //Assume sphere is at 0, 0, 0, radius = 1
-
-    float a = ray.dir.Dot(ray.dir);
-    float b = 2.0*(ray.dir.Dot(ray.p));
-    float c = ((ray.p.Dot(ray.p)) - 1.0);
-
-    // printf("a b c = %f %f %f\n", a, b, c);
-    float delta = (b*b) - (4.0*(a*c));
-    float t = (-b - sqrt(delta))/(2.0*a);
-
-    // printf("delta = %f\n", delta);
-    if(t < 0)
-    {
-        // printf("false\n");
-        return false;
-    }
-   
-    if (t >= 0)
-    {    
-        if(t < hInfo.z ){
-            hInfo.z = t;
-            hInfo.p = ray.p + ray.dir*t;
-
-            hInfo.N = Normalize(hInfo.p);
-            return true;
-        }
-        // printf("true\n");
-   
-    }
-    return false;
-}
-
-bool treeTraversal( Node *node, Ray ray, HitInfo &hInfo)
-{
-    bool hitTracker = false;
-    Ray transformedRay = node->ToNodeCoords(ray);
-    // hInfo.node = node;
-    Object* currentObj = node->GetNodeObj();
-   
-    // printf("in hitObject\n");
-   
-    for(int i = 0; i < node->GetNumChild(); i++){
-        Node *child = node->GetChild(i);
-        
-        if(treeTraversal(child, transformedRay, hInfo) == true)
-        {
-
-            hitTracker = true;
-            node->FromNodeCoords(hInfo);
-
-            // hInfo.node = child;
-        // node->FromNodeCoords(hInfo);
-
-        }
-    }
-
-    if(currentObj != nullptr){
-
-        if(currentObj->IntersectRay(transformedRay, hInfo, 1))
-        {
-            hitTracker = true;
-            node->FromNodeCoords(hInfo);
-
-            hInfo.node = node;
-
-            // printf("true %d\n ", hitTracker);
-        }
-    }
-
-    return hitTracker;
-}
-
-
-float GenLight::Shadow( Ray const &ray, float t_max ){
-    HitInfo hitInf = HitInfo();
-    hitInf.Init();
- 
-    // Ray rayCopy;
-    // rayCopy.dir = ray.dir;
-    // rayCopy.p = Vec3f(ray.p + (ray.dir * 0.5));
-    if(treeTraversal(&rootNode, ray, hitInf))
-    {
-        if(hitInf.z <= t_max){
-        //    printf("hi\n");
-            return 0.0;
-        }
-    }
-
-    return 1.0;
-}
