@@ -1,5 +1,5 @@
-#include "materials.h"
-#include "ray.h"
+#include "headerFiles/materials.h"
+#include "headerFiles/ray.h"
 #include "cy/cyMatrix.h"
 #include "cy/cyVector.h"
 
@@ -25,9 +25,11 @@ Color MtlBlinn::Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lig
         // Color specularColor = Color(1,1,1);
     Vec3f n = hInfo.N;
 
+    Color reflection = Color(0, 0, 0);
+
     if(this->reflection != Color(0, 0, 0))
     {
-        Vec3f reflectDir = 2*((n%camera)*(n - camera));
+        Vec3f reflectDir = 2.0*(n%camera)*n - camera;
 
         Ray reflectRay;
         reflectRay.p = hInfo.p;
@@ -38,8 +40,8 @@ Color MtlBlinn::Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lig
 
         //create a shootSecondaryRay method. pass in the bounce number, subtract 1 each time. 
         //thats it thats the only difference. check that bounce number is > 0 
-        Color reflection = rayCalculation.shootRay(reflectRay, reflectHit) * this->reflection;
-        return reflection;
+        reflection = rayCalculation.shootRay(reflectRay, reflectHit) * this->reflection * specularColor;
+        // return reflection;
     }
     
     for(int i = 0; i < lights.size(); i++){
@@ -74,7 +76,7 @@ Color MtlBlinn::Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lig
     }
     // printf("Blinn color = [%f, %f, %f]\n", blinnColor.r, blinnColor.g, blinnColor.b);
 
-    return blinnColor + ambientColor;
+    return blinnColor + ambientColor + reflection;
 }
 
 Color MtlPhong::Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lights, int bounceNum) const

@@ -63,5 +63,7 @@
         "stop_token": "cpp",
         "thread": "cpp"
     },
-    "cmake.ignoreCMakeListsMissing": true
+    "cmake.ignoreCMakeListsMissing": true,
+    "makefile.makefilePath": "project 4\\Makefile",
+    "makefile.configureOnOpen": true
 }

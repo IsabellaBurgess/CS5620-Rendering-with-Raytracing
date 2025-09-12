@@ -7,9 +7,9 @@
 #include "cy/cyMatrix.h"
 #include "cy/cyVector.h"
 
-#include "lights.h"
-#include "scene.h"
-#include "ray.h"
+#include "headerFiles/lights.h"
+#include "headerFiles/scene.h"
+#include "headerFiles/ray.h"
 
 extern RenderScene scene;
 extern Node rootNode;
@@ -17,6 +17,7 @@ extern Node rootNode;
 using namespace cy;
 
 extern calculateRay rayCalculation; 
+extern float shadowBias;
 
 
 bool shadowRay(Node *node, Ray ray, HitInfo &hInfo){
@@ -59,6 +60,9 @@ bool shadowRay(Node *node, Ray ray, HitInfo &hInfo){
 float GenLight::Shadow( Ray const &ray, float t_max ){
     HitInfo hitInf = HitInfo();
     hitInf.Init();
+    Ray rayCopy;
+    rayCopy.dir = ray.dir;
+    rayCopy.p = Vec3f(ray.p + (ray.dir * shadowBias));
 
     if(rayCalculation.treeTraversal(&rootNode, ray, hitInf))
     {

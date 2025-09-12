@@ -7,10 +7,10 @@
 #include "cy/cyMatrix.h"
 #include "cy/cyVector.h"
 
-#include "lights.h"
-#include "scene.h"
-#include "ray.h"
-#include "objects.h"
+#include "headerFiles/lights.h"
+#include "headerFiles/scene.h"
+#include "headerFiles/ray.h"
+#include "headerFiles/objects.h"
 
 extern double wsHeight;
 extern double wsWidth;
@@ -29,6 +29,7 @@ extern RenderScene scene;
 
 extern int camOffset;
 extern int bounceNum;
+extern float shadowBias;
 
 using namespace cy;
 using namespace std;
@@ -114,8 +115,11 @@ bool Sphere::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
     // printf("a b c = %f %f %f\n", a, b, c);
     float delta = (b*b) - (4.0*(a*c));
     float t = (-b - sqrt(delta))/(2.0*a);
+  
 
-
+    // if(t < shadowBias){
+    //     t = (-b + sqrt(delta))/(2.0*a);
+    // }
     // printf("delta = %f\n", delta);
     if(t < 0)
     {
@@ -127,10 +131,20 @@ bool Sphere::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
     {    
         
         if(t < hInfo.z ){
+
             hInfo.z = t;
             hInfo.p = ray.p + ray.dir*t;
 
             hInfo.N = Normalize(hInfo.p);
+
+            if(ray.dir%hInfo.N > 0.0){
+                hInfo.N = -hInfo.N;
+                hInfo.front = false;
+            }
+
+            else{
+                hInfo.front = true;
+            }
             return true;
         }
         // printf("true\n");

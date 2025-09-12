@@ -12,14 +12,16 @@
 #include "include/cy/cyVector.h"
 
 
-#include "include/tinyxml2.h"
-#include "include/scene.h"
-#include "include/objects.h"
-#include "include/materials.h"
-#include "include/lights.h"
+#include "include/libs/tinyxml2.h"
+#include "include/libs/lodepng.h"
 
-#include "include/lodepng.h"
-#include "include/ray.h"
+#include "include/headerFiles/scene.h"
+#include "include/headerFiles/objects.h"
+#include "include/headerFiles/materials.h"
+#include "include/headerFiles/lights.h"
+
+
+#include "include/headerFiles/ray.h"
 
 using namespace std;
 using namespace cy;
@@ -49,13 +51,16 @@ double wsHeight;
 double wsWidth;
 float imageWidth;
 float imageHeight;
+
 int camOffset = 1;
 int bounceNum = 1;
 
+float shadowBias = 0.0001;
+
 
 int main (int argc, char** argv){   
-   
-    LoadScene(scene, "boxScene.xml");
+
+    LoadScene(scene, "sceneFiles/boxScene.xml");
 
     ShowViewport(&scene);
 }
