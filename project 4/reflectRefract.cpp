@@ -32,7 +32,7 @@ void initalRays(int i, Matrix4f wsTransMatrix);
 
 void SetViewportMaterial(int subMtlID=0);
 
-// const int numThreads = 1;
+// const int numThreads = 1 ;
 const int numThreads = thread::hardware_concurrency();
 
 //Scene information
@@ -53,7 +53,7 @@ float imageWidth;
 float imageHeight;
 
 int camOffset = 1;
-int initBounceNum = 5;
+int initBounceNum = 3;
 
 float shadowBias = 0.0001;
 
@@ -112,11 +112,13 @@ void BeginRender( RenderScene *scene )
     std::vector<std::thread> threads;
     threads.reserve(numThreads);
 
+    int pixelIndex = 0;
     auto trace = [&] 
     {
         while(true)
         {
             const int pixelIndex = nextPixel.fetch_add(1, std::memory_order_relaxed);
+
             if(pixelIndex >= imageHeight*imageWidth)
             {
                 break;
@@ -136,6 +138,7 @@ void BeginRender( RenderScene *scene )
     // sceneImage.SaveZImage("project2ZBuffer.png");
     sceneImage.SaveImage("renderedImage.png");
 }
+
 
 void initalRays(int i, Matrix4f wsTransMatrix){
 

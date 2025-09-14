@@ -41,17 +41,17 @@ Color calculateRay::shootRay(Ray const &ray, HitInfo &hInfo, int bounceNum){
     bool hit = treeTraversal(&rootNode, ray, hInfo);         
     Color color;
     
-    if(ray.dir%hInfo.N > 0.0){
-        hInfo.N = -hInfo.N;
-        hInfo.front = false;
-        // printf("back hit %d\n", hInfo.front);
-    }
+//     if(ray.dir%hInfo.N > 0.0){
+//         hInfo.N = -hInfo.N;
+//         hInfo.front = false;
+//         // printf("back hit %d\n", hInfo.front);
+//     }
 
-    else if(ray.dir%hInfo.N <= 0.0){
-        hInfo.front = true;
-//        printf("front hit\n");
+//     else if(ray.dir%hInfo.N <= 0.0){
+//         hInfo.front = true;
+// //        printf("front hit\n");
 
-    }
+//     }
         // printf("Node name is %s\n", hitInf.node->GetName());
 
     // printf("%d\n", hitTracker);
@@ -124,32 +124,46 @@ bool Sphere::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
 
     // printf("a b c = %f %f %f\n", a, b, c);
     float delta = (b*b) - (4.0*(a*c));
-    float t = (-b - sqrt(delta))/(2.0*a);
-  
+    float t1 = (-b - sqrt(delta))/(2.0*a);
+    float t2 = (-b + sqrt(delta))/(2.0*a);  
 
-    // if(t < shadowBias){
-    //     t = (-b + sqrt(delta))/(2.0*a);
+    // if(t1 < 0.01){
+    //     t1 = (-b + sqrt(delta))/(2.0*a);
     // }
     // printf("delta = %f\n", delta);
-    if(t < 0)
-    {
-        // printf("false\n");
-        return false;
-    }
-   
-    if (t >= 0)
+    if (delta >= 0)
     {    
-        
-        if(t < hInfo.z ){
+        if (t1 <= 0.001 && t2 > 0.001){
+            hInfo.front = false;
 
-            hInfo.z = t;
-            hInfo.p = ray.p + ray.dir*t;
+            if(t2 < hInfo.z ){
 
-            hInfo.N = Normalize(hInfo.p);
+                hInfo.z = t2;
+                hInfo.p = ray.p + ray.dir*t2;
 
-            printf("face hit %d", hInfo.front);
-            return true;
+                hInfo.N = -Normalize(hInfo.p);
+
+                // printf("face hit %d", hInfo.front);
+                return true;
+            }
+
         }
+
+
+        else if (t1 > 0.001)
+        {
+            hInfo.front = true;
+            if(t1 < hInfo.z){
+                hInfo.z = t1;
+                hInfo.p = ray.p + ray.dir*t1;
+
+                hInfo.N = Normalize(hInfo.p);
+
+                // printf("face hit %d", hInfo.front);
+                return true;
+            }
+        }
+
         // printf("true\n");
     }
 

@@ -14,10 +14,9 @@ extern int initBounceNum;
 Color MtlBlinn::Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lights, int bounceNum) const
 {
 
-    bounceNum--;
 
 
-	Vec3f camera = -ray.dir;
+	Vec3f camera = -ray.dir.GetNormalized();
 
     float gloss = this->Glossiness();
     Vec3f lightDir;
@@ -51,37 +50,44 @@ Color MtlBlinn::Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lig
 
     
     //implement bounce hit!!!
-    if(refractValue != Color(0, 0, 0) && bounceNum >= 0 ){
+    if(refractValue != Color(0, 0, 0) && bounceNum > 0 ){
+        bounceNum--;
         // printf("glass!\n");
         float ior = this->IOR();
         float eta = 1/ior;
 
-        float refractCosThetaO = pow((camera % n),2);
-        float refractCosThetaT = 1 - (pow(eta, 2)*(1-(refractCosThetaO)));
+        if(hInfo.front == false)
+        {
+            eta = ior/1;
+        }
 
-        if(refractCosThetaT <= 0){
-            reflectValue = this->refraction;
+        float refractCosThetaO = pow((camera % n),2.0);
+        float refractCosThetaTSquared = 1.0 - (pow(eta, 2.0)*(1.0-(refractCosThetaO)));
+
+        if(refractCosThetaTSquared <= 0.0f){
+            reflectValue.SetWhite();
         }
 
         else{
             Vec3f refractDir;
-            refractCosThetaT = sqrt(refractCosThetaT);
+            float refractCosThetaT = sqrt(refractCosThetaTSquared);
 
-            if(hInfo.front ){
-                refractDir = (-eta * camera) - ((refractCosThetaT - eta*(camera % n))*n);
+            // if(hInfo.front ){
+                refractDir = -eta * camera - (sqrt(refractCosThetaTSquared)- eta*(camera % n))*n;
                 // printf("front hit 1\n");
 
-            }
+            // }
 
-            else{
-                // n = -n;
-                refractDir = (-eta * camera) - (((camera % n) - eta*refractCosThetaT)*n);
-                // printf("back hit 2\n");
+            // else{
+            //     // n = -n;
+            //     refractDir = -eta * camera - (camera % n - eta*sqrt(refractCosThetaTSquared))*n;
+            //     // printf("back hit 2\n");
 
-            }
+            // } 
 
             Ray refractRay; 
             refractRay.dir = refractDir ;
+
 
             if(bounceNum == initBounceNum - 1){
                 refractRay.p = hInfo.p ;
@@ -89,22 +95,28 @@ Color MtlBlinn::Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lig
             }
 
             else{
-                refractRay.p = hInfo.p + (refractRay.dir * 0.5);
+                refractRay.p = hInfo.p ;
 
             }
 
             
+            
             HitInfo refractHit = HitInfo();
             refractHit.Init(); 
+            
 
-            refraction = rayCalculation.shootRay(refractRay, refractHit, bounceNum)* refractValue * specularColor;
+            refraction = rayCalculation.shootRay(refractRay, refractHit, bounceNum) * refractValue;
         }
 
     }
 
     //implement bounce hit
-    if(reflectValue != Color(0, 0, 0) && bounceNum >= 0)
-    {
+    if(reflectValue != Color(0, 0, 0) && bounceNum > 0)
+    {    bounceNum--;
+
+        if(hInfo.front == false){
+
+        }
         Vec3f reflectDir = 2.0*(n%camera)*n - camera;
 
         Ray reflectRay;
@@ -117,7 +129,7 @@ Color MtlBlinn::Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lig
         }
 
         else{
-            reflectRay.p = hInfo.p + (reflectRay.dir );
+            reflectRay.p = hInfo.p + (reflectRay.dir * 0.01);
 
         }
 
@@ -126,7 +138,8 @@ Color MtlBlinn::Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lig
 
         //create a shootSecondaryRay method. pass in the bounce number, subtract 1 each time. 
         //thats it thats the only difference. check that bounce number is > 0 
-        reflection = rayCalculation.shootRay(reflectRay, reflectHit, bounceNum) * reflectValue * specularColor;
+        
+        reflection = rayCalculation.shootRay(reflectRay, reflectHit, bounceNum) * reflectValue ;
         // return reflection;
     }
   
