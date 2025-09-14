@@ -53,7 +53,7 @@ float imageWidth;
 float imageHeight;
 
 int camOffset = 1;
-int bounceNum = 1;
+int initBounceNum = 5;
 
 float shadowBias = 0.0001;
 
@@ -168,7 +168,7 @@ void initalRays(int i, Matrix4f wsTransMatrix){
     HitInfo hitInf = HitInfo();
     hitInf.Init();
 
-    Color finalColor = rayCalculation.shootRay(currentRay, hitInf);
+    Color finalColor = rayCalculation.shootRay(currentRay, hitInf, initBounceNum);
     int numPixel = y*imageWidth + x;
 
     pixels[numPixel] = (Color24) finalColor;

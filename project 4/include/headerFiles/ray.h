@@ -8,7 +8,7 @@ class calculateRay
 {
     public:
         calculateRay(){}
-        Color shootRay(Ray const &ray, HitInfo &hInfo);
+        Color shootRay(Ray const &ray, HitInfo &hInfo, int bounceNum);
         
         bool treeTraversal( Node *node, Ray ray, HitInfo &hInfo);
 };

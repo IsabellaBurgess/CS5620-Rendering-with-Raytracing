@@ -28,7 +28,6 @@ extern float *zBuf;
 extern RenderScene scene;
 
 extern int camOffset;
-extern int bounceNum;
 extern float shadowBias;
 
 using namespace cy;
@@ -37,11 +36,22 @@ using namespace std;
 
 
 
-Color calculateRay::shootRay(Ray const &ray, HitInfo &hInfo){
+Color calculateRay::shootRay(Ray const &ray, HitInfo &hInfo, int bounceNum){
 
     bool hit = treeTraversal(&rootNode, ray, hInfo);         
     Color color;
+    
+    if(ray.dir%hInfo.N > 0.0){
+        hInfo.N = -hInfo.N;
+        hInfo.front = false;
+        // printf("back hit %d\n", hInfo.front);
+    }
 
+    else if(ray.dir%hInfo.N <= 0.0){
+        hInfo.front = true;
+//        printf("front hit\n");
+
+    }
         // printf("Node name is %s\n", hitInf.node->GetName());
 
     // printf("%d\n", hitTracker);
@@ -137,14 +147,7 @@ bool Sphere::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
 
             hInfo.N = Normalize(hInfo.p);
 
-            if(ray.dir%hInfo.N > 0.0){
-                hInfo.N = -hInfo.N;
-                hInfo.front = false;
-            }
-
-            else{
-                hInfo.front = true;
-            }
+            printf("face hit %d", hInfo.front);
             return true;
         }
         // printf("true\n");
