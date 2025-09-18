@@ -10,6 +10,7 @@
 #include "include/cy/cyGL.h"
 #include "include/cy/cyMatrix.h"
 #include "include/cy/cyVector.h"
+#include "include/cy/cyTriMesh.h"
 
 
 #include "include/libs/tinyxml2.h"

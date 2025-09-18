@@ -113,7 +113,6 @@ bool calculateRay::treeTraversal( Node *node, Ray ray, HitInfo &hInfo)
     return hitTracker;
 }
 
-
 bool Sphere::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
     //Quadratic equation info
     //Assume sphere is at 0, 0, 0, radius = 1
@@ -168,5 +167,29 @@ bool Sphere::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
     }
 
 
+    return false;
+}
+
+bool Plane::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide) const{
+
+    float t = -(ray.p.z/ray.dir.z);
+    
+    if (t > 0.001){
+
+        if(t < hInfo.z){
+            hInfo.z = t;
+            hInfo.p = ray.p + ray.dir*t;
+
+            hInfo.N = Vec3f(0, 0, 1);
+
+            // printf("face hit %d", hInfo.front);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool TriObj::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
     return false;
 }
