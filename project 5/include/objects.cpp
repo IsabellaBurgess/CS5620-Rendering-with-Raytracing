@@ -87,13 +87,14 @@ bool TriObj::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
     const Object *currentObj = hInfo.node->GetNodeObj();
     Box boundBox = currentObj->GetBoundBox();
 
-    // if(IntersectBox(boundBox, ray)){
+    if(IntersectBox(boundBox, ray)){
         for(int i = 0; i < this->nf; i++) {
-            this->IntersectTriangle(ray, hInfo, hitSide, i);
+            if(this->IntersectTriangle(ray, hInfo, hitSide, i)){
                 return true;
+            }
         }
 
-    // }
+    }
     return false;
 }
 
