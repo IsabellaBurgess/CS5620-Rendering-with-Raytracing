@@ -42,6 +42,7 @@ Color24 *pixels;
 Node rootNode;
 MaterialList matList; 
 LightList lightList;
+ObjFileList objList;
 
 calculateRay rayCalculation; 
 RenderScene scene;
@@ -58,6 +59,7 @@ int initBounceNum = 5;
 
 float shadowBias = 0.0001;
 
+bool useBoundingBox = true;
 
 int main (int argc, char** argv){   
 
@@ -73,6 +75,7 @@ void BeginRender( RenderScene *scene )
     zBuf = scene->renderImage.GetZBuffer();
 
     matList = scene->materials;
+    objList = scene->objList;
     lightList = scene->lights;
 
     cam = scene->camera;
@@ -105,13 +108,11 @@ void BeginRender( RenderScene *scene )
     wsTransMatrix.SetColumn(1, Vec4f(wsY,0));
     wsTransMatrix.SetColumn(2, Vec4f(-wsZ,0));
     wsTransMatrix.SetColumn(3, Vec4f(cam.pos,1));
-    
-    // Matrix4f initTransMatrix = Matrix4f(Vec4f(wsX, 0), Vec4f(wsY,0), Vec4f(wsZ,0), Vec4f(cam.pos,1));
-    // Matrix4f wsTransMatrix = initTransMatrix.GetTranspose();
 
     atomic<int> nextPixel{0}; 
     std::vector<std::thread> threads;
     threads.reserve(numThreads);
+
 
     int pixelIndex = 0;
     auto trace = [&] 
@@ -124,7 +125,9 @@ void BeginRender( RenderScene *scene )
             {
                 break;
             }
-            initalRays(pixelIndex, wsTransMatrix);
+
+            
+            initalRays(pixelIndex, wsTransMatrix);            
         }
     };
             

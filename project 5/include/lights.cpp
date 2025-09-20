@@ -34,7 +34,7 @@ bool shadowRay(Node *node, Ray ray, HitInfo &hInfo){
         if(currentObj->IntersectRay(transformedRay, hInfo, 1))
         {
             // printf("true %d\n ", hitTracker);
-            node->FromNodeCoords(hInfo);
+            // node->FromNodeCoords(hInfo);
 
             return true;
 
@@ -46,8 +46,6 @@ bool shadowRay(Node *node, Ray ray, HitInfo &hInfo){
 
         if(shadowRay(child, transformedRay, hInfo) == true)
         {
-            node->FromNodeCoords(hInfo);
-
             return true;
 
         }
@@ -57,6 +55,7 @@ bool shadowRay(Node *node, Ray ray, HitInfo &hInfo){
 }
 
 
+
 float GenLight::Shadow( Ray const &ray, float t_max ){
     HitInfo hitInf = HitInfo();
     hitInf.Init();
@@ -64,13 +63,13 @@ float GenLight::Shadow( Ray const &ray, float t_max ){
     rayCopy.dir = ray.dir;
     rayCopy.p = Vec3f(ray.p + (ray.dir * shadowBias));
 
-    if(rayCalculation.treeTraversal(&rootNode, ray, hitInf))
-    {
-        if(hitInf.z <= t_max){
-        //    printf("hi\n");
-            return 0.0;
-        }
-    }
+    // if(rayCalculation.treeTraversal(&rootNode, ray, hitInf))
+    // {
+    //     if(hitInf.z <= t_max){
+    //     //    printf("hi\n");
+    //         return 0.0;
+    //     }
+    // }
 
     return 1.0;
 }
