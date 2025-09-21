@@ -113,7 +113,9 @@ bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, uns
 
     float h = -v0 % norm;
 
-    float t = -((ray.p % norm) + h)/(ray.dir % norm);
+    float t = -(ray.p % norm + h)/(ray.dir % norm);
+
+    norm = (norm);
 
     if (t > 0.001){
             
@@ -125,43 +127,67 @@ bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, uns
         Vec3f tempHit = ray.p + ray.dir*t;
 
 
-        if(abs(norm.x) > abs(norm.y) && abs(norm.x) > abs(norm.z)){
+        if(abs(norm.x) >= abs(norm.y) && abs(norm.x) >= abs(norm.z)){
             newV0 = Vec2f(v0.y, v0.z);
             newV1 = Vec2f(v1.y, v1.z);
             newV2 = Vec2f(v2.y, v2.z);
             tempX = Vec2f(tempHit.y, tempHit.z);
         }
 
-        else if(abs(norm.y) > abs(norm.z) && abs(norm.y) > abs(norm.z)){
+        else if(abs(norm.y) >= abs(norm.z) && abs(norm.y) >= abs(norm.x)){
             newV0 = Vec2f(v0.x, v0.z);
             newV1 = Vec2f(v1.x, v1.z);
             newV2 = Vec2f(v2.x, v2.z);
             tempX = Vec2f(tempHit.x, tempHit.z);
         }
 
-        else if(abs(norm.z) > abs(norm.y) && abs(norm.z) > abs(norm.y)){
+        else if(abs(norm.z) >= abs(norm.y) && abs(norm.z) >= abs(norm.x)){
             newV0 = Vec2f(v0.x, v0.y);
             newV1 = Vec2f(v1.x, v1.y);
             newV2 = Vec2f(v2.x, v2.y);
             tempX = Vec2f(tempHit.x, tempHit.y);
         }
 
+        else{
+            printf("missed everythign\n");
+        }
+
         float area0 = (newV2 - newV1).Cross(tempX - newV1);
         float area1 = (newV0 - newV2).Cross(tempX - newV2);
         float area2 = (newV1 - newV0).Cross(tempX - newV0);
 
-        if(area0 >= 0.0 && area1 >= 0.0 && area2 >= 0.0)
+  
+        bool insideTriangle = false;
+        if(area0 > 0.0 && area1 > 0.0 && area2 > 0.0)
         {
-            if(t < hInfo.z){
-                hInfo.z = t;
-                hInfo.p = ray.p + ray.dir*t;
-
-                hInfo.N = norm;
-
-                // printf("face hit %d", hInfo.front);
-                return true;
-            }
+            insideTriangle = true;
         }
+        
+        if(area0 < 0.0 && area1 < 0.0 && area2 < 0.0){
+            insideTriangle = true;
+        }
+
+        if(t < hInfo.z && insideTriangle == true){
+            float areaFull = area0 + area1 + area2;
+            Vec3f norm0 = VN(currentFace.v[0]);
+            Vec3f norm1 = VN(currentFace.v[1]);
+            Vec3f norm2 = VN(currentFace.v[2]);
+            
+            float b0 = area0/areaFull;
+            float b1 = area1/areaFull;
+            float b2 = 1 - (b1 + b0);
+
+            
+            hInfo.z = t;
+            hInfo.p = ray.p + ray.dir*t;
+
+            hInfo.N = b0*norm0 + b1*norm0 + b2*norm2;
+
+            // printf("face hit %d", hInfo.front);
+            return true;
+        }
+        
+        
     }
 
     return false;

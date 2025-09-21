@@ -23,6 +23,7 @@
 
 
 #include "include/headerFiles/ray.h"
+#include "include/headerFiles/viewport.h"
 
 using namespace std;
 using namespace cy;
@@ -55,7 +56,7 @@ float imageWidth;
 float imageHeight;
 
 int camOffset = 1;
-int initBounceNum = 5;
+int initBounceNum = 1;
 
 float shadowBias = 0.0001;
 
@@ -63,13 +64,16 @@ bool useBoundingBox = true;
 
 int main (int argc, char** argv){   
 
-    LoadScene(scene, "sceneFiles/boxScene.xml");
-
+    thread t([]{
+        LoadScene(scene, "sceneFiles/boxScene.xml");
+    });
     ShowViewport(&scene);
 }
 
 void BeginRender( RenderScene *scene )
 {
+        // thread t([&]{
+
     RenderImage &sceneImage = scene->renderImage;
     pixels = scene->renderImage.GetPixels();
     zBuf = scene->renderImage.GetZBuffer();
@@ -109,38 +113,44 @@ void BeginRender( RenderScene *scene )
     wsTransMatrix.SetColumn(2, Vec4f(-wsZ,0));
     wsTransMatrix.SetColumn(3, Vec4f(cam.pos,1));
 
-    atomic<int> nextPixel{0}; 
-    std::vector<std::thread> threads;
-    threads.reserve(numThreads);
+
+        atomic<int> nextPixel{0}; 
+        std::vector<std::thread> threads;
+        threads.reserve(numThreads);
 
 
-    int pixelIndex = 0;
-    auto trace = [&] 
-    {
-        while(true)
+        int pixelIndex = 0;
+        auto trace = [&] 
         {
-            const int pixelIndex = nextPixel.fetch_add(1, std::memory_order_relaxed);
-
-            if(pixelIndex >= imageHeight*imageWidth)
+            while(true)
             {
-                break;
+                const int pixelIndex = nextPixel.fetch_add(1, std::memory_order_relaxed);
+
+                if(pixelIndex >= imageHeight*imageWidth)
+                {
+                    break;
+                }
+                DrawRenderProgressBar;
+
+                initalRays(pixelIndex, wsTransMatrix);            
             }
-
-            
-            initalRays(pixelIndex, wsTransMatrix);            
+        };
+                
+        for (int t = 0; t < numThreads; t++)
+        {
+            threads.emplace_back(trace);
         }
-    };
-            
-    for (int t = 0; t < numThreads; t++)
-    {
-        threads.emplace_back(trace);
-    }
 
-    for(auto& th : threads) th.join();
+        for(auto& th : threads) th.join();
+            
+    // });
+
+    // t.detach();
    
     // sceneImage.ComputeZBufferImage();
     // sceneImage.SaveZImage("project2ZBuffer.png");
     sceneImage.SaveImage("renderedImage.png");
+
 }
 
 

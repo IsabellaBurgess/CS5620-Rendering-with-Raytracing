@@ -25,6 +25,7 @@
 #include "materials.h"
 #include <stdlib.h>
 #include <time.h>
+#include "viewport.h"
  
 #include <GL/freeglut.h>
  
@@ -270,11 +271,11 @@ void DrawProgressBar(float done)
  
     glBegin(GL_LINES);
     glColor3f(1,1,1);
-    glVertex2f(-1,-1);
+    glVertex2f(-2,-1);
     glVertex2f(done*2-1,-1);
     glColor3f(0,0,0);
     glVertex2f(done*2-1,-1);
-    glVertex2f(1,-1);
+    glVertex2f(2,-1);
     glEnd();
  
     glPopMatrix();
