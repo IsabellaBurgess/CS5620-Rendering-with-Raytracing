@@ -56,7 +56,7 @@ float imageWidth;
 float imageHeight;
 
 int camOffset = 1;
-int initBounceNum = 1;
+int initBounceNum = 2;
 
 float shadowBias = 0.0001;
 
