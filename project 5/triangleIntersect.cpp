@@ -34,8 +34,8 @@ void initalRays(int i, Matrix4f wsTransMatrix);
 
 void SetViewportMaterial(int subMtlID=0);
 
-// const int numThreads = 1 ;
-const int numThreads = thread::hardware_concurrency();
+const int numThreads = 16 ;
+// const int numThreads = thread::hardware_concurrency();
 
 //Scene information
 Camera cam;
@@ -56,7 +56,7 @@ float imageWidth;
 float imageHeight;
 
 int camOffset = 1;
-int initBounceNum = 3;
+int initBounceNum = 8;
 
 float shadowBias = 0.0001;
 

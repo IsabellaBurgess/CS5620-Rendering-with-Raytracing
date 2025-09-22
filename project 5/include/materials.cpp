@@ -105,16 +105,11 @@ Color MtlBlinn::Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lig
         Ray reflectRay;
         reflectRay.dir = reflectDir;
 
-    
-        if(bounceNum == initBounceNum - 1){
-            reflectRay.p = hInfo.p + (reflectRay.dir);
 
-        }
 
-        else{
-            reflectRay.p = hInfo.p + (reflectRay.dir * 0.01);
+        reflectRay.p = hInfo.p + (reflectRay.dir * 0.01);
 
-        }
+        
 
         HitInfo reflectHit = HitInfo();
         reflectHit.Init();

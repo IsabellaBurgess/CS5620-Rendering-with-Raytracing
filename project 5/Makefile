@@ -12,7 +12,7 @@ CPP_LIBS =  include/libs/lodepng.cpp \
 
 
 main: triangleIntersect.cpp
-	g++ -g triangleIntersect.cpp $(COMPILE_FLAGS) $(CPP_LIBS) include/materials.cpp include/objects.cpp include/lights.cpp include/ray.cpp -o out $(LIBRARIES)
+	g++ -g -o3 triangleIntersect.cpp $(COMPILE_FLAGS) $(CPP_LIBS) include/materials.cpp include/objects.cpp include/lights.cpp include/ray.cpp -o out $(LIBRARIES)
 clean:
 	rm out
 

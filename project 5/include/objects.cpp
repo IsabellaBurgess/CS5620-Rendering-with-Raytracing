@@ -1,6 +1,7 @@
 #include "headerFiles/objects.h"
 #include "cy/cyMatrix.h"
 #include "cy/cyVector.h"
+#include "cy/cyTriMesh.h"
 #include <cfloat>
 
 using namespace cy;
@@ -8,6 +9,7 @@ using namespace cy;
 float closest = __FLT_MAX__;
 
 bool IntersectBox(Box box, Ray const &ray);
+
 
 bool Sphere::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
     //Quadratic equation info
@@ -108,14 +110,15 @@ bool TriObj::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
                 hitFound=true;
             }
         }
-
     // }
+
     return hitFound;
 }
 
 bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, unsigned int faceID ) const{
     
     TriMesh::TriFace currentFace = F(faceID);
+    constexpr float epsilon = std::numeric_limits<float>::epsilon();
 
     Vec3f v0 = V(currentFace.v[0]);
     Vec3f v1 = V(currentFace.v[1]);
@@ -123,17 +126,17 @@ bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, uns
 
     Vec3f e1 = v1 - v0;
     Vec3f e2 = v2 - v0;
+    
+    Vec3f norm = Normalize(e2.Cross(e1));
 
-    Vec3f norm = e1.Cross(e2);
+    float h = -(v0 % norm);
 
-    float h = -v0 % norm;
+    float t = -(((ray.p % norm) + h)/(ray.dir % norm));
 
-    float t = -(ray.p % norm + h)/(ray.dir % norm);
-
-    norm = Normalize(norm);
+    norm = norm;
 
     
-    if (t > 0.0001 && t < hInfo.z){
+    if (t > 0.001 && t < hInfo.z){
             
         Vec2f newV0;
         Vec2f newV1;
@@ -142,21 +145,21 @@ bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, uns
 
         Vec3f tempHit = ray.p + ray.dir*t;
 
-        if(abs(norm.x) >= abs(norm.y) && abs(norm.x) >= abs(norm.z)){
+        if( (norm.x) >=  (norm.y) &&  (norm.x) >=  (norm.z)){
             newV0 = Vec2f(v0.y, v0.z);
             newV1 = Vec2f(v1.y, v1.z);
             newV2 = Vec2f(v2.y, v2.z);
             tempX = Vec2f(tempHit.y, tempHit.z);
         }
 
-        else if(abs(norm.y) >= abs(norm.z) && abs(norm.y) >= abs(norm.x)){
+        else if( (norm.y) >=  (norm.z) &&  (norm.y) >=  (norm.x)){
             newV0 = Vec2f(v0.x, v0.z);
             newV1 = Vec2f(v1.x, v1.z);
             newV2 = Vec2f(v2.x, v2.z);
             tempX = Vec2f(tempHit.x, tempHit.z);
         }
 
-        else if(abs(norm.z) >= abs(norm.y) && abs(norm.z) >= abs(norm.x)){
+        else if( (norm.z) >=  (norm.y) &&  (norm.z) >=  (norm.x)){
             newV0 = Vec2f(v0.x, v0.y);
             newV1 = Vec2f(v1.x, v1.y);
             newV2 = Vec2f(v2.x, v2.y);
@@ -194,8 +197,8 @@ bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, uns
             float b1 = area1/areaFull;
             float b2 = 1 - (b0+b1);
 
-            hInfo.N = Normalize(norm);
-            // hInfo.N = (b0*norm0 + b1*norm1 + b2*norm2);
+            // hInfo.N = Normalize(norm);
+            hInfo.N = (b0*norm0 + b1*norm1 + b2*norm2);
 
             // printf("Bari cords = %f\n", b0 + b1 + b2);
             hInfo.z = t;
@@ -207,9 +210,10 @@ bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, uns
         
     }
 
-
     return false;
+    
 }
+
 
 bool IntersectBox(Box box, Ray const &ray){ 
     Vec3f cord1 = box.pmax;
