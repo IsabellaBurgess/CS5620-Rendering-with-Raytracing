@@ -77,7 +77,6 @@ bool calculateRay::treeTraversal( Node *node, Ray ray, HitInfo &hInfo)
 {
     bool hitTracker = false;
     Ray transformedRay = node->ToNodeCoords(ray);
-    // hInfo.node = node;
     Object* currentObj = node->GetNodeObj();
    
     // printf("in hitObject\n");
@@ -97,7 +96,7 @@ bool calculateRay::treeTraversal( Node *node, Ray ray, HitInfo &hInfo)
         }
     }
 
-    if(currentObj != nullptr){
+    if(currentObj != 0x0){
 
         if(currentObj->IntersectRay(transformedRay, hInfo, 1))
         {

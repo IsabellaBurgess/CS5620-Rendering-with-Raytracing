@@ -13,9 +13,6 @@ extern int initBounceNum;
 
 Color MtlBlinn::Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lights, int bounceNum) const
 {
-
-
-
 	Vec3f camera = -ray.dir.GetNormalized();
 
     float gloss = this->Glossiness();
@@ -97,8 +94,7 @@ Color MtlBlinn::Shade(Ray const &ray, HitInfo const &hInfo, LightList const &lig
 
     }
 
-    //implement bounce hit
-    if(reflectValue != Color(0, 0, 0) && bounceNum > 0)
+      if(reflectValue != Color(0, 0, 0) && bounceNum > 0)
     {    bounceNum--;
 
         if(hInfo.front == false){

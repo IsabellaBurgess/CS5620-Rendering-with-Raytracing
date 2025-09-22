@@ -56,17 +56,14 @@ float imageWidth;
 float imageHeight;
 
 int camOffset = 1;
-int initBounceNum = 2;
+int initBounceNum = 3;
 
 float shadowBias = 0.0001;
 
-bool useBoundingBox = true;
-
 int main (int argc, char** argv){   
 
-    thread t([]{
         LoadScene(scene, "sceneFiles/boxScene.xml");
-    });
+    
     ShowViewport(&scene);
 }
 

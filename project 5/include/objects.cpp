@@ -69,37 +69,47 @@ bool Sphere::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
 bool Plane::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide) const{
 
     float t = -(ray.p.z/ray.dir.z);
+
+    Vec3f hitPoint = ray.p + ray.dir*t;
+    float hitPointX = hitPoint.x;
+    float hitPointY = hitPoint.y;
+
+    if(hitPointX <= 1 && hitPointX >= -1 && hitPointY <= 1 && hitPointY >= -1 )
+    {
     
     if (t > 0.001){
         
         if(t < hInfo.z){
+      
             hInfo.z = t;
             hInfo.p = ray.p + ray.dir*t;
 
-            hInfo.N = Vec3f(0, 0, 1);
+
+            hInfo.N =  Vec3f(0, 0, 1);
 
             // printf("face hit %d", hInfo.front);
             return true;
         }
     }
+}
 
     return false;
 }
 
 bool TriObj::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
-    const Object *currentObj = hInfo.node->GetNodeObj();
-    Box boundBox = currentObj->GetBoundBox();
+
+    Box boundBox = this->GetBoundBox();
     
     bool hitFound = false;
 
-    if(IntersectBox(boundBox, ray)){
+    // if(IntersectBox(boundBox, ray)){
         for(int i = 0; i < this->nf; i++) {
             if(this->IntersectTriangle(ray, hInfo, hitSide, i)){
                 hitFound=true;
             }
         }
 
-    }
+    // }
     return hitFound;
 }
 
@@ -122,7 +132,8 @@ bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, uns
 
     norm = Normalize(norm);
 
-    if (t > 0.001 && t < hInfo.z){
+    
+    if (t > 0.0001 && t < hInfo.z){
             
         Vec2f newV0;
         Vec2f newV1;
@@ -162,12 +173,12 @@ bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, uns
 
   
         bool insideTriangle = false;
-        if(area0 > 0.0 && area1 > 0.0 && area2 > 0.0)
+        if(area0 >= 0.0 && area1 >= 0.0 && area2 >= 0.0)
         {
             insideTriangle = true;
         }
         
-        if(area0 < 0.0 && area1 < 0.0 && area2 < 0.0){
+        if(area0 <= 0.0 && area1 <= 0.0 && area2 <= 0.0){
             insideTriangle = true;
         }
 
@@ -181,23 +192,26 @@ bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, uns
             
             float b0 = area0/areaFull;
             float b1 = area1/areaFull;
-            float b2 = area2/areaFull;
+            float b2 = 1 - (b0+b1);
+
+            hInfo.N = Normalize(norm);
+            // hInfo.N = (b0*norm0 + b1*norm1 + b2*norm2);
 
             // printf("Bari cords = %f\n", b0 + b1 + b2);
             hInfo.z = t;
             hInfo.p = ray.p + ray.dir*t;
 
-            hInfo.N = Normalize(b0*norm0 + b1*norm1 + b2*norm2);
 
             return true;
         }
         
     }
 
+
     return false;
 }
 
-bool IntersectBox(Box box, Ray const &ray){
+bool IntersectBox(Box box, Ray const &ray){ 
     Vec3f cord1 = box.pmax;
     Vec3f cord2 = box.pmin;
     float t;
