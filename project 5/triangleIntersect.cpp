@@ -56,20 +56,20 @@ float imageWidth;
 float imageHeight;
 
 int camOffset = 1;
-int initBounceNum = 8;
+int initBounceNum = 4;
 
 float shadowBias = 0.0001;
 
 int main (int argc, char** argv){   
 
-        LoadScene(scene, "sceneFiles/boxScene.xml");
+        LoadScene(scene, "sceneFiles/sphere-grid-scene.xml");
     
     ShowViewport(&scene);
 }
 
 void BeginRender( RenderScene *scene )
 {
-        // thread t([&]{
+        thread t([&]{
 
     RenderImage &sceneImage = scene->renderImage;
     pixels = scene->renderImage.GetPixels();
@@ -140,13 +140,13 @@ void BeginRender( RenderScene *scene )
 
         for(auto& th : threads) th.join();
             
-    // });
+    });
 
-    // t.detach();
+    t.detach();
    
     // sceneImage.ComputeZBufferImage();
     // sceneImage.SaveZImage("project2ZBuffer.png");
-    sceneImage.SaveImage("renderedImage.png");
+    scene->renderImage.SaveImage("renderedImage.png");
 
 }
 

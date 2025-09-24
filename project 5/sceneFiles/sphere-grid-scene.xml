@@ -1,0 +1,29 @@
+<xml>
+    <scene>
+        <object material="white" name="sphere-grid.obj" type="obj"/>
+        <object material="white" name="ground" type="plane">
+            <scale value="20"/>
+            <translate z="-2"/>
+        </object>
+        <material type="blinn" name="white">
+            <diffuse value="0.8"/>
+            <specular value="0.2"/>
+            <glossiness value="20"/>
+        </material>
+        <light name="pointLight" type="point">
+            <intensity b="0.9" value="0.9"/>
+            <position x="0" y="0" z="0.8"/>
+        </light>
+        <light name="ambientLight" type="ambient">
+            <intensity r="0.05" g="0.05" b="0.1"/>
+        </light>
+    </scene>
+    <camera>
+        <position y="-6" z="1"/>
+        <target z="-2"/>
+        <up y="1"/>
+        <fov value="45"/>
+        <width value="1920"/>
+        <height value="1080"/>
+    </camera>
+</xml>

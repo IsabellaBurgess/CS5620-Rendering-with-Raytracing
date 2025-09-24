@@ -63,7 +63,7 @@ float GenLight::Shadow( Ray const &ray, float t_max ){
     rayCopy.dir = ray.dir;
     rayCopy.p = Vec3f(ray.p + (ray.dir * shadowBias));
 
-    if(rayCalculation.treeTraversal(&rootNode, ray, hitInf))
+    if(rayCalculation.treeTraversal(&rootNode, rayCopy, hitInf))
     {
         if(hitInf.z <= t_max){
         //    printf("hi\n");

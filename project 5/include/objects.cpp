@@ -82,12 +82,26 @@ bool Plane::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide) const{
     if (t > 0.001){
         
         if(t < hInfo.z){
-      
+
+                        
+            if(ray.dir.z > 0 ){
+
+                hInfo.front = false;
+                // hInfo.N = -hInfo.N;
+            }
+
+
+            else{
+                hInfo.front = true;
+            }
+
             hInfo.z = t;
             hInfo.p = ray.p + ray.dir*t;
 
 
             hInfo.N =  Vec3f(0, 0, 1);
+
+
 
             // printf("face hit %d", hInfo.front);
             return true;
@@ -104,13 +118,13 @@ bool TriObj::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
     
     bool hitFound = false;
 
-    // if(IntersectBox(boundBox, ray)){
+    if(IntersectBox(boundBox, ray)){
         for(int i = 0; i < this->nf; i++) {
             if(this->IntersectTriangle(ray, hInfo, hitSide, i)){
                 hitFound=true;
             }
         }
-    // }
+    }
 
     return hitFound;
 }
@@ -197,13 +211,24 @@ bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, uns
             float b1 = area1/areaFull;
             float b2 = 1 - (b0+b1);
 
-            // hInfo.N = Normalize(norm);
             hInfo.N = (b0*norm0 + b1*norm1 + b2*norm2);
+
+            float backCheck = hInfo.N%ray.dir;
+            if(backCheck > 0 ){
+                
+                hInfo.front = false;
+                hInfo.N = -hInfo.N;
+            }
+
+            else{
+                hInfo.front = true;
+            }
+
+            // hInfo.N = Normalize(norm);
 
             // printf("Bari cords = %f\n", b0 + b1 + b2);
             hInfo.z = t;
             hInfo.p = ray.p + ray.dir*t;
-
 
             return true;
         }
