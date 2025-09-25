@@ -166,7 +166,7 @@ void initalRays(int i, Matrix4f wsTransMatrix){
     // printf("The Current ray pos is [%f, %f, %f] \n", currentRay.p.x, currentRay.p.y, currentRay.p.z);
 
     // printf("The Current ray dir is [%f, %f, %f] \n", currentRay.dir.x, currentRay.dir.y, currentRay.dir.z);
-    //quadratic equation for ray intersection
+    // quadratic equation for ray intersection
 
     HitInfo hitInf = HitInfo();
     hitInf.Init();
