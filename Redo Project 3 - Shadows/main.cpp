@@ -40,7 +40,7 @@ double wsWidth;
 float imageWidth;
 float imageHeight;
 
-float maxT;
+float maxT = BIGFLOAT;
 
 int camOffset = 1;
 int initBounceNum = 5;
@@ -144,17 +144,19 @@ class RayTracer : public Renderer{
         return hitTracker;
     }
 
-    bool TraceShadowRay(Ray const &ray, int hitSide){
+    bool TraceShadowRay(Ray const &ray, float t_max, int hitSide){
         HitInfo hitInf = HitInfo();
         hitInf.Init();
 
-        bool hitTracker = shadowRay(&rootNode, ray, hitInf);
-        // printf("Hit tracker: %d\n ", hitTracker);
+        bool hit =  rayCalculation.treeTraversal(&rootNode, ray, hitInf);
+        
+        if(hitInf.z > t_max) 
+        {
+            hit = false;
+        }
+                // printf("Hit tracker: %d\n ", hitTracker);
 
-        // if(hitInf.z > maxT){
-        //     hitTracker = false;
-        // }
-        return hitTracker;
+        return hit;
     }
 
     bool shadowRay(Node *node, Ray ray, HitInfo &hInfo){
@@ -238,7 +240,7 @@ RayTracer sceneRenderer;
 
 int main (int argc, char** argv){
     RayTracer sceneRenderer;
-    sceneRenderer.LoadScene("sceneFiles/testScene.xml");
+    sceneRenderer.LoadScene("sceneFiles/boxScene.xml");
 
     ShowViewport(&sceneRenderer, false);
     return 0;
@@ -258,8 +260,9 @@ public:
         rayCopy.dir = ray.dir;
         rayCopy.p = Vec3f(ray.p + (ray.dir * 0.0001));
 
-        maxT = t_max;
-        if(sceneRenderer.TraceShadowRay(ray, true))
+        
+
+        if(sceneRenderer.TraceShadowRay(ray, t_max, true))
         {
             return 0.0;
         }
@@ -269,7 +272,6 @@ public:
   
 };
 
-ShadeInfo sha = Shadows(lightList);
 
 
 Color shootRay(int x, int y, Ray const &ray, HitInfo &hInfo, int bounceNum ){
