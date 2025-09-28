@@ -90,24 +90,24 @@ bool Sphere::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
     // }
     if (delta >= 0)
     {    
-        // if (t1 <= 0.001 && t2 > 0.001){
-        //     hInfo.front = false;
+        if (t1 <= 0.001 && t2 > 0.001){
+            hInfo.front = false;
 
-        //     if(t2 < hInfo.z ){
+            if(t2 < hInfo.z ){
 
-        //         hInfo.z = t2;
-        //         hInfo.p = ray.p + ray.dir*t2;
+                hInfo.z = t2;
+                hInfo.p = ray.p + ray.dir*t2;
 
-        //         hInfo.N = -Normalize(hInfo.p);
+                hInfo.N = -Normalize(hInfo.p);
 
-        //         // printf("face hit %d", hInfo.front);
-        //         return true;
-        //     }
+                // printf("face hit %d", hInfo.front);
+                return true;
+            }
 
-        // }
+        }
 
 
-        if (t1 > 0.00)
+        if (t1 > 0.001)
         {
             // hInfo.front = true;
             if(t1 < hInfo.z){

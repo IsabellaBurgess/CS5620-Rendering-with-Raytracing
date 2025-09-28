@@ -27,20 +27,22 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
 
     for(int i = 0; i < shadeInfo.NumLights(); i++){
         const Light* currentLight = shadeInfo.GetLight(i);
+        // printf("light number is %s\n", currentLight->GetName());
+
         Color intensity = currentLight->Illuminate(shadeInfo, lightDir);
 
-        // printf("Current light is %s\n", currentLight->GetName());
         if(currentLight->IsAmbient()){
             ambientColor += intensity*baseColor;
         }
 
 
         else{
-            
+            // printf("Current light is %s\n", currentLight->GetName());
 
-            Vec3f n = norm;
+            lightDir = Normalize(lightDir);
+
+            Vec3f n = shadeInfo.N();
             Vec3f h = Normalize(lightDir+camera);
-            
             // printf("Normals are [%f, %f, %f]\n", n.x, n.y, n.z);
             // printf("Object name is %s\n", hInfo.node->GetName());
             

@@ -40,6 +40,8 @@ double wsWidth;
 float imageWidth;
 float imageHeight;
 
+float maxT;
+
 int camOffset = 1;
 int initBounceNum = 5;
 
@@ -48,9 +50,10 @@ const int numThreads = 16 ;
 // const int numThreads = thread::hardware_concurrency();
 
 
-Color shootRay(ShadeInfo shadeInf, Ray const &ray, HitInfo &hInfo, int bounceNum);
+Color shootRay(int x, int y, Ray const &ray, HitInfo &hInfo, int bounceNum);
 
 calculateRay rayCalculation; 
+
 
 
 class RayTracer : public Renderer{
@@ -141,24 +144,53 @@ class RayTracer : public Renderer{
         return hitTracker;
     }
 
-    bool TraceShadowRay( Ray const &ray, float t_max, int hitSide)
-    {
+    bool TraceShadowRay(Ray const &ray, int hitSide){
         HitInfo hitInf = HitInfo();
         hitInf.Init();
-        Ray rayCopy;
-        rayCopy.dir = ray.dir;
-        rayCopy.p = Vec3f(ray.p + (ray.dir * 0.001));
 
-        if(rayCalculation.treeTraversal(&rootNode, rayCopy, hitInf))
-        {
-            if(hitInf.z <= t_max){
-            //    printf("hi\n");
-                return 0.0;
+        bool hitTracker = shadowRay(&rootNode, ray, hitInf);
+        // printf("Hit tracker: %d\n ", hitTracker);
+
+        // if(hitInf.z > maxT){
+        //     hitTracker = false;
+        // }
+        return hitTracker;
+    }
+
+    bool shadowRay(Node *node, Ray ray, HitInfo &hInfo){
+        bool hitTracker = false;
+        Ray transformedRay = node->ToNodeCoords(ray);
+        // hInfo.node = node;
+        Object* currentObj = node->GetNodeObj();
+    
+        // printf("in hitObject\n");
+    
+        if(currentObj != nullptr){
+            // printf("true2\n");
+
+            if(currentObj->IntersectRay(transformedRay, hInfo, 1))
+            {
+                // printf("true %d\n ", hitTracker);
+                // node->FromNodeCoords(hInfo);
+
+                return true;
+
+            }
+        }
+        for(int i = 0; i < node->GetNumChild(); i++){
+            Node *child = node->GetChild(i);
+                // printf("true %d\n ", hitTracker);
+
+            if(shadowRay(child, transformedRay, hInfo) == true)
+            {
+                return true;
+
             }
         }
 
-        return 1.0;
+        return false;
     }
+    
 
     void initalRays(int i, Matrix4f wsTransMatrix){
 
@@ -181,7 +213,6 @@ class RayTracer : public Renderer{
         currentRay.dir = Vec3f(wsTransMatrix * Vec4f(currentRay.dir, 0.0));
         currentRay.dir.Normalize();
 
-        ShadeInfo shade = ShadeInfo(lightList);
         // printf("Camera pos: [%f, %f, %f]\n", currentRay.p.x, currentRay.p.y, currentRay.p.z);
 
         // printf("The Current ray pos is [%f, %f, %f] \n", currentRay.p.x, currentRay.p.y, currentRay.p.z);
@@ -193,9 +224,7 @@ class RayTracer : public Renderer{
         hitInf.Init();
         hitInf.node = &rootNode;
 
-        shade.SetPixel(x, y);
-
-        Color finalColor = shootRay(shade, currentRay, hitInf, initBounceNum);
+        Color finalColor = shootRay(x, y, currentRay, hitInf, initBounceNum);
         int numPixel = y*imageWidth + x;
 
         pixels[numPixel] = (Color24) finalColor;
@@ -206,7 +235,44 @@ class RayTracer : public Renderer{
 
 RayTracer sceneRenderer;
 
-Color shootRay(ShadeInfo shadeInf, Ray const &ray, HitInfo &hInfo, int bounceNum ){
+
+int main (int argc, char** argv){
+    RayTracer sceneRenderer;
+    sceneRenderer.LoadScene("sceneFiles/testScene.xml");
+
+    ShowViewport(&sceneRenderer, false);
+    return 0;
+}
+
+
+class Shadows : public ShadeInfo{
+public:
+
+    Shadows(std::vector<Light*> const &lightList) : ShadeInfo(lightList){}
+
+    float TraceShadowRay( Ray const &ray, float t_max) const override
+    {
+        //    printf("hi\n");
+
+        Ray rayCopy;
+        rayCopy.dir = ray.dir;
+        rayCopy.p = Vec3f(ray.p + (ray.dir * 0.0001));
+
+        maxT = t_max;
+        if(sceneRenderer.TraceShadowRay(ray, true))
+        {
+            return 0.0;
+        }
+
+        return 1.0;
+    }
+  
+};
+
+ShadeInfo sha = Shadows(lightList);
+
+
+Color shootRay(int x, int y, Ray const &ray, HitInfo &hInfo, int bounceNum ){
     // hInfo.node = &rootNode;
     // printf("hit node: %s\n", hInfo.node->GetName());
 
@@ -220,6 +286,8 @@ Color shootRay(ShadeInfo shadeInf, Ray const &ray, HitInfo &hInfo, int bounceNum
             // printf("hit node: %s\n", hitInf.node->GetName());
         const Material *currentMat = hInfo.node->GetMaterial();
 
+        Shadows shadeInf = Shadows(lightList);
+        shadeInf.SetPixel(x, y);
 
         shadeInf.SetHit(ray, hInfo);
         color = currentMat->Shade(shadeInf);
@@ -234,14 +302,5 @@ Color shootRay(ShadeInfo shadeInf, Ray const &ray, HitInfo &hInfo, int bounceNum
     return color;
 }
 
-
-
-int main (int argc, char** argv){
-    RayTracer sceneRenderer;
-    sceneRenderer.LoadScene("sceneFiles/testScene.xml");
-
-    ShowViewport(&sceneRenderer, false);
-    return 0;
-}
 
 void StopRender(){}

@@ -60,7 +60,7 @@ float shadowBias = 0.0001;
 
 int main (int argc, char** argv){   
 
-    LoadScene(scene, "sceneFiles/boxScene.xml");
+    LoadScene(scene, "sceneFiles/testScene.xml");
 
     ShowViewport(&scene);
 }
