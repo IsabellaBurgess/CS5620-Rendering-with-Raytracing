@@ -12,7 +12,7 @@ CPP_LIBS =  include/libs/lodepng.cpp \
 
 
 main: main.cpp
-	g++ -g -o3 main.cpp $(COMPILE_FLAGS) $(CPP_LIBS) include/ray.cpp include/materials.cpp -o out $(LIBRARIES)
+	g++ -g -o3 main.cpp $(COMPILE_FLAGS) $(CPP_LIBS) include/ray.cpp include/materials.cpp include/shadeInf.cpp include/objects.cpp -o out $(LIBRARIES)
 clean:
 	rm out
 

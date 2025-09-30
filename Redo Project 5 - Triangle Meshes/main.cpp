@@ -2,29 +2,29 @@
 
 #define GLUT_DISABLE_ATEXIT_HACK
 
-#include <thread>
-
 #include <iostream>
+#include <thread>
 #include <GL/glew.h>
 #include <GL/glut.h>
 #include <GL/gl.h>
 #include "include/cy/cyGL.h"
 #include "include/cy/cyMatrix.h"
-
-
-#include "include/headerFiles/scene.h"
-#include "include/headerFiles/objects.h"
-#include "include/headerFiles/renderer.h"
-#include "include/headerFiles/ray.h"
-#include "include/headerFiles/lights.h"
-#include "include/headerFiles/materials.h"
-#include "include/headerFiles/shadeInf.h"
+#include "include/cy/cyVector.h"
+#include "include/cy/cyTriMesh.h"
 
 #include "include/headerFiles/main.h"
 
 #include "include/libs/tinyxml2.h"
 #include "include/libs/lodepng.h"
 
+#include "include/headerFiles/scene.h"
+#include "include/headerFiles/objects.h"
+#include "include/headerFiles/materials.h"
+#include "include/headerFiles/lights.h"
+#include "include/headerFiles/renderer.h"
+
+
+#include "include/headerFiles/ray.h"
 using namespace std;
 
 Camera cam;
