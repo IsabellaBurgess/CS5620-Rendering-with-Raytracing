@@ -60,7 +60,7 @@
       <specular r="1.0" g="1.0" b="1.0" value="0.8"/>
       <glossiness value="10"/>
       <refraction value="0.8" index="1.52"/>
-      <absorption r="0.01" g="0.001" b="0.0001"/>
+      <absorption r="0.08" g="0.03" b="0.0001"/>
     </material>
  
     <!-- Lights -->

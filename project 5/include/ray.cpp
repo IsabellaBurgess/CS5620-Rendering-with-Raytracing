@@ -36,41 +36,34 @@ using namespace std;
 
 
 
-Color calculateRay::shootRay(Ray const &ray, HitInfo &hInfo, int bounceNum){
+Color shootRay(int x, int y, Ray const &ray, HitInfo &hInfo, int bounceNum ){
+    // hInfo.node = &rootNode;
+    // printf("hit node: %s\n", hInfo.node->GetName());
 
-    bool hit = treeTraversal(&rootNode, ray, hInfo);         
+    bool hit = sceneRenderer.TraceRay(ray, hInfo, hInfo.front);         
     Color color;
-    
-//     if(ray.dir%hInfo.N > 0.0){
-//         hInfo.N = -hInfo.N;
-//         hInfo.front = false;
-//         // printf("back hit %d\n", hInfo.front);
-//     }
 
-//     else if(ray.dir%hInfo.N <= 0.0){
-//         hInfo.front = true;
-// //        printf("front hit\n");
-
-//     }
-        // printf("Node name is %s\n", hitInf.node->GetName());
-
-    // printf("%d\n", hitTracker);
+    // printf("%d\n", hit);
     if(hit == true && hInfo.node->GetNodeObj() != nullptr)
-
     {
         // printf("true\n");
             // printf("hit node: %s\n", hitInf.node->GetName());
         const Material *currentMat = hInfo.node->GetMaterial();
-        color = currentMat->Shade(ray, hInfo, lightList, bounceNum);
-        // color = Color24(1, 200, 255);
+
+        Shadows shadeInf = Shadows(lightList);
+        shadeInf.SetPixel(x, y);
+
+        shadeInf.SetHit(ray, hInfo);
+        color = currentMat->Shade(shadeInf);
+        // color = Color(1, 200, 255);
     }
 
     else{
+        // printf("F alse\n");
         color.SetBlack();
     }
 
     return color;
-
 }
 
 bool calculateRay::treeTraversal( Node *node, Ray ray, HitInfo &hInfo)
