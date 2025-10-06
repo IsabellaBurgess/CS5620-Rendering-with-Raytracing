@@ -3,13 +3,19 @@
 #include "cy/cyMatrix.h"
 #include "cy/cyVector.h"
 #include "cy/cyTriMesh.h"
+#include "cy/cyBVH.h"
 #include <cfloat>
 
 using namespace cy;
+using namespace std;
 
 float closest = __FLT_MAX__;
 
 bool IntersectBox(Box box, Ray const &ray);
+Vec3f vecMin(const Vec3f& vec1, const Vec3f& vec2);
+Vec3f vecMax(const Vec3f& vec1, const Vec3f& vec2);
+
+BVHTriMesh bvhTree;
 
 
 bool Sphere::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
@@ -116,18 +122,31 @@ bool Plane::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide) const{
 bool TriObj::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
 
     Box boundBox = this->GetBoundBox();
+    bvhTree = this->bvh;
     
     bool hitFound = false;
 
-    if(IntersectBox(boundBox, ray)){
-        for(int i = 0; i < this->nf; i++) {
-            if(this->IntersectTriangle(ray, hInfo, hitSide, i)){
-                hitFound=true;
-            }
-        }
-    }
+    
 
-    return hitFound;
+    if(TraceBVHNode(ray, hInfo, hitSide, bvhTree.GetRootNodeID()))
+    {
+            // printf("traced node\n");
+
+        return true;
+            }
+    
+
+    // if(boundBox.IntersectRay(ray, __FLT_MAX__)){
+    //     // printf("in box\n");
+    //     for(int i = 0; i < this->nf; i++) {
+    //         // printf("face number is %d\n", i);
+    //         if(this->IntersectTriangle(ray, hInfo, hitSide, i)){
+    //             hitFound=true;
+    //         }
+    //     }
+    // }
+
+    return false;
 }
 
 bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, unsigned int faceID ) const{
@@ -240,6 +259,118 @@ bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, uns
     
 }
 
+bool TriObj::TraceBVHNode( Ray const &ray, HitInfo &hInfo, int hitSide, unsigned int nodeID ) const{
+
+    Box nodeBox = bvhTree.GetNodeBounds(nodeID);
+    
+
+    if(nodeBox.IntersectRay(ray, __FLT_MAX__) == false){
+
+        return false;
+    }
+
+    if(bvhTree.IsLeafNode(nodeID)){
+          // printf("leaf\n");
+          bool hitTracker = false;
+        for(int i = 0; i < bvhTree.GetNodeElementCount(nodeID); i++){
+
+            if(IntersectTriangle(ray, hInfo, hitSide, bvhTree.GetNodeElements(nodeID)[i])){
+                hitTracker = true;
+                // int siblingNode = bvhTree.GetSiblingNode(nodeID);
+                // if(bvhTree.GetNodeBounds(siblingNode)[2] > hInfo.z){
+                //     return false;
+                // }
+                // else{
+                //     return false;
+                // }
+            }
+            // printf("in leaf\n");
+
+        }
+            return hitTracker; 
+
+
+    }
+
+
+    unsigned int childOneID, childTwoID; 
+
+    bvhTree.GetChildNodes(nodeID, childOneID, childTwoID);
+
+    
+    // printf("child 1 = %d\n", childOneID);
+    // printf("child 2 = %d\n", childTwoID);
+    HitInfo hitChild1;
+    hitChild1.Init();
+
+    HitInfo hitChild2;
+    hitChild2.Init();
+    bool child1 = TraceBVHNode(ray, hitChild1, hitSide, childOneID);
+
+    bool child2 = TraceBVHNode(ray, hitChild2, hitSide, childTwoID);
+
+
+    if(child1 || child2){
+        if(hitChild1.z < hitChild2.z){
+            hInfo = hitChild1;
+            // printf("returning 1\n");
+            return true;
+        }
+        
+        else{
+            hInfo = hitChild2;
+            // printf("returning 2\n");
+
+            return true;
+        }
+    }
+
+
+    
+    //get node info, check if the ray hits in the box
+        //if no hit, return false! easy peasy
+
+    //if yes hit check if its a leaf
+        //if yes is a leaf, run intersectTriangles on each triangle in the leaf
+
+    //if not a leaf, recursion time! run on both children 
+
+    return false;
+
+}
+
+
+//Method implemented with help from Devin Fink
+//Ray-AABB intersection 
+bool Box::IntersectRay(Ray const &r, float t_max) const{
+    Vec3f boxMax = pmax;
+    Vec3f boxMin = pmin;
+
+    Vec3f dir = r.dir;
+    Vec3f p = r.p;
+    auto safeInv = [](float d){
+        return (fabs(d) > 1e-8f) ? (1.0f/d):
+        std::numeric_limits<float>::infinity();
+    };
+
+    Vec3f invR = Vec3f(safeInv(dir.x), safeInv(dir.y), safeInv(dir.z));
+
+    Vec3f tMin = vecMin(Vec3f(invR * (boxMax - p)), Vec3f(invR * (boxMin - p)));
+    Vec3f tMax = vecMax(Vec3f(invR * (boxMax - p)), Vec3f(invR * (boxMin - p)));
+
+    float t0 = Max(tMin.x, tMin.y, tMin.z);
+    float t1 = Min(tMax.x, tMax.y, tMax.z);
+
+    return t0 <= t1 && t1 >= 0.0f;
+}
+
+Vec3f vecMin(const Vec3f& vec1, const Vec3f& vec2){
+    return Vec3f(Min(vec1.x, vec2.x), Min(vec1.y, vec2.y), Min(vec1.z, vec2.z));
+}
+
+Vec3f vecMax(const Vec3f& vec1, const Vec3f& vec2){
+    return Vec3f(Max(vec1.x, vec2.x), Max(vec1.y, vec2.y), Max(vec1.z, vec2.z));
+}
 
 bool IntersectBox(Box box, Ray const &ray){ 
     Vec3f cord1 = box.pmax;
