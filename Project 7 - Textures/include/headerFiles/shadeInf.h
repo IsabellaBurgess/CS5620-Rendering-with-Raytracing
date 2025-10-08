@@ -14,7 +14,7 @@ using namespace std;
 class Shadows : public ShadeInfo
 {
 public: 
-    Shadows( std::vector<Light*> const &lightList) : ShadeInfo(lightList) {}
+    Shadows( std::vector<Light*> const &lightList, TexturedColor const &environment ) : ShadeInfo(lightList, environment) {}
 
     // calculateRay const* renderer;
     float TraceShadowRay( Ray const &ray, float t_max) const override;

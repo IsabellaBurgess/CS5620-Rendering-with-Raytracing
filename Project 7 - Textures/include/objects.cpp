@@ -105,6 +105,8 @@ bool Plane::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide) const{
             hInfo.z = t;
             hInfo.p = ray.p + ray.dir*t;
 
+             
+
 
             hInfo.N =  Vec3f(0, 0, 1);
 

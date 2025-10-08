@@ -26,7 +26,7 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
     Vec3f const hitPos = shadeInfo.P();
     Vec3f const norm = shadeInfo.N();
 
-    float gloss = this->Glossiness();
+    float gloss = this->Glossiness().GetValue();
     Vec3f lightDir = Vec3f(0,0,0 );
     // float lightIntensity = 1.0;
 
@@ -35,12 +35,13 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
     
     Color absorbValue = this->absorption;
 
-	Color baseColor = this->Diffuse();
-    Color reflectColor = this->Specular();
+    //this!! this is what needs to get updated and changed
+	Color baseColor = this->Diffuse().GetValue();
+    Color reflectColor = this->Specular().GetValue();
 
     
-    Color reflectValue = this->reflection;
-    Color refractValue = this->refraction;
+    Color reflectValue = this->reflection.GetValue();
+    Color refractValue = this->refraction.GetValue();
 
     Color reflection = Color(0, 0, 0);
     Color refraction = Color(0, 0, 0);
@@ -89,14 +90,14 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
 
             // }
 
-            refraction = refraction *refractValue;
+            //change refraction to the current texture point
+            refraction = refraction * refractValue;
         }
 
     }
     
     if(reflectValue != Color(0, 0, 0) && shadeInfo.CanBounce())
     {
-
 
         Vec3f reflectDir = 2.0*(norm%camera)*norm - camera;
 
@@ -110,7 +111,7 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
 
         //create a shootSecondaryRay method. pass in the bounce number, subtract 1 each time. 
         //thats it thats the only difference. check that bounce number is > 0 
-                    float dist = BIGFLOAT;
+        float dist = BIGFLOAT;
 
         reflection = shadeInfo.TraceSecondaryRay(reflectRay, dist) * reflectValue;
         // return reflectColor;
@@ -123,7 +124,7 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
         Color intensity = currentLight->Illuminate(shadeInfo, lightDir);
 
         if(currentLight->IsAmbient()){
-            ambientColor += intensity*baseColor;
+            ambientColor += intensity * baseColor;
         }
 
 
@@ -142,9 +143,9 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
 
             float cosTheta = Max((n % lightDir), 0.0f);
                 
-            Color specularLight =  reflectColor*pow(cosPhi, gloss);
-            Color difuseLight = (cosTheta*baseColor);
-            blinnColor += (intensity*(difuseLight + specularLight));
+            Color specularLight =  reflectColor * pow(cosPhi, gloss);
+            Color difuseLight = (cosTheta * baseColor);
+            blinnColor += (intensity * (difuseLight + specularLight));
 
 
         }

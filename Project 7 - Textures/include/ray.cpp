@@ -28,6 +28,8 @@ extern MaterialList matList;
 extern LightList lightList;
 extern int bounceNum;
 extern Color backgroundColor;
+extern TexturedColor env;
+
 
 extern float *zBuf;
 
@@ -55,7 +57,7 @@ Color calculateRay::shootRay(int x, int y, Ray const &ray, HitInfo &hInfo){
             // printf("hit node: %s\n", hitInf.node->GetName());
         const Material *currentMat = hInfo.node->GetMaterial();
 
-        Shadows shadeInf = Shadows(lightList);
+        Shadows shadeInf = Shadows(lightList, env);
         shadeInf.SetPixel(x, y);
 
         shadeInf.SetHit(ray, hInfo);
@@ -64,8 +66,14 @@ Color calculateRay::shootRay(int x, int y, Ray const &ray, HitInfo &hInfo){
     }
 
     else{
+        float u = (float) x/ imageWidth ;
+        float v = (float) y/ imageHeight ;
+        color = env.EvalEnvironment(Vec3f(x, y, 1.0));
         // printf("F alse\n");
-        color.SetBlack();
+
+
+        // printf("background color is (%f, %f, %f)\n", color.r, color.b, color.g);
+        // color.SetBlack();
     }
 
     return color;

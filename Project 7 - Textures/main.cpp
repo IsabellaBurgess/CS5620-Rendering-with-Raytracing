@@ -33,6 +33,8 @@ Node rootNode;
 MaterialList matList; 
 LightList lightList;
 Color backgroundColor = Color(0, 0, 0);
+TexturedColor env;
+
 
 float *zBuf;
 
@@ -54,7 +56,7 @@ RayTracer sceneRenderer;
 
 
 int main (int argc, char** argv){
-    sceneRenderer.LoadScene("sceneFiles/boxScene.xml");
+    sceneRenderer.LoadScene("sceneFiles/testScene.xml");
     ShowViewport(&sceneRenderer, false);
     return 0;
 }
@@ -65,11 +67,11 @@ void RayTracer::BeginRender(){
     RenderImage &sceneImage = GetRenderImage();
     pixels = sceneImage.GetPixels();
     zBuf = sceneImage.GetZBuffer();
-
     
     matList = scene.materials;
     lightList = scene.lights;
-    
+    env = scene.background;
+
     cam = GetCamera();
     rootNode = scene.rootNode;
 

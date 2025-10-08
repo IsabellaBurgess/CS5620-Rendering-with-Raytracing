@@ -23,6 +23,7 @@ extern Node rootNode;
 extern Color backgroundColor;
 extern int bounceNum;
 
+
 float Shadows::TraceShadowRay( Ray const &ray, float t_max) const {
     
     Ray rayCopy;
