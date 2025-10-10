@@ -20,7 +20,7 @@ using namespace std;
 extern calculateRay rayCalculation; 
 extern Node rootNode; 
 
-extern Color backgroundColor;
+extern TexturedColor env;
 extern int bounceNum;
 
 
@@ -77,7 +77,7 @@ Color Shadows::TraceSecondaryRay( Ray const &ray, float &dist ) const
 {
     HitInfo newHit;
     newHit.Init();
-    Color newColor = backgroundColor;
+    Color newColor = Color(0, 0, 0);
 
     bool hit = rayCalculation.TraceRay(ray, newHit, newHit.front);
     
@@ -92,6 +92,9 @@ Color Shadows::TraceSecondaryRay( Ray const &ray, float &dist ) const
         newColor = newHit.node->GetMaterial()->Shade(shade);
     }
     
+    else{
+        newColor = env.EvalEnvironment(ray.dir);
+    }
     return newColor;
 } 
 

@@ -36,8 +36,9 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
     Color absorbValue = this->absorption;
 
     //this!! this is what needs to get updated and changed
-	Color baseColor = this->Diffuse().GetValue();
-    Color reflectColor = this->Specular().GetValue();
+    // TexturedColor baseTex = this->Diffuse();
+	Color baseColor = this->Diffuse().Eval(shadeInfo.UVW());
+    Color reflectColor = this->Specular().Eval(shadeInfo.UVW());
 
     
     Color reflectValue = this->reflection.GetValue();

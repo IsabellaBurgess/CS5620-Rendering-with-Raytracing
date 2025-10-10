@@ -27,7 +27,7 @@ extern Node rootNode;
 extern MaterialList matList; 
 extern LightList lightList;
 extern int bounceNum;
-extern Color backgroundColor;
+extern TexturedColor background;
 extern TexturedColor env;
 
 
@@ -68,7 +68,7 @@ Color calculateRay::shootRay(int x, int y, Ray const &ray, HitInfo &hInfo){
     else{
         float u = (float) x / (float) cam.imgWidth ;
         float v = (float) y / (float) cam.imgHeight ;
-        color = env.Eval(Vec3f(u, v, 0));
+        color = background.Eval(Vec3f(u, v, 0));
 
 
         // printf("F alse\n");

@@ -11,7 +11,6 @@ using namespace std;
 
 float closest = __FLT_MAX__;
 
-bool IntersectBox(Box box, Ray const &ray);
 Vec3f vecMin(const Vec3f& vec1, const Vec3f& vec2);
 Vec3f vecMax(const Vec3f& vec1, const Vec3f& vec2);
 
@@ -47,6 +46,11 @@ bool Sphere::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
 
                 hInfo.N = -Normalize(hInfo.p);
 
+
+                float u = (atan2(hInfo.p.y, hInfo.p.x)/(2*Pi<float>())) + (1/2);
+                float v = (asin(hInfo.p.z)/(Pi<float>())) + (1/2);
+                hInfo.uvw = Vec3f(u, v, 0);
+
                 // printf("face hit %d", hInfo.front);
                 return true;
             }
@@ -63,10 +67,15 @@ bool Sphere::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
 
                 hInfo.N = Normalize(hInfo.p);
 
+                float u = (atan2(hInfo.p.y, hInfo.p.x)/(2*Pi<float>())) + (1/2);
+                float v = (asin(hInfo.p.z)/(Pi<float>())) + (1/2);
+
+                hInfo.uvw = Vec3f(u, v, 0);
                 // printf("face hit %d", hInfo.front);
                 return true;
             }
         }
+
 
         // printf("true\n");
     }
@@ -106,7 +115,8 @@ bool Plane::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide) const{
             hInfo.p = ray.p + ray.dir*t;
 
              
-
+            Vec2f uv = (Vec2f(hInfo.p) + Vec2f(1, 1))/2;
+            hInfo.uvw = Vec3f(uv, 0);
 
             hInfo.N =  Vec3f(0, 0, 1);
 
@@ -130,12 +140,12 @@ bool TriObj::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
 
     
 
-    if(TraceBVHNode(ray, hInfo, hitSide, bvhTree.GetRootNodeID()))
-    {
-            // printf("traced node\n");
+    // if()
+    // {
+    //         // printf("traced node\n");
 
-        return true;
-            }
+    //     return true;
+    //         }
     
 
     // if(boundBox.IntersectRay(ray, __FLT_MAX__)){
@@ -148,7 +158,7 @@ bool TriObj::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
     //     }
     // }
 
-    return false;
+    return TraceBVHNode(ray, hInfo, hitSide, bvhTree.GetRootNodeID());
 }
 
 bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, unsigned int faceID ) const{
@@ -168,9 +178,6 @@ bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, uns
     float h = -(v0 % norm);
 
     float t = -(((ray.p % norm) + h)/(ray.dir % norm));
-
-    norm = norm;
-
     
     if (t > 0.001 && t < hInfo.z){
             
@@ -246,11 +253,10 @@ bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, uns
                 hInfo.front = true;
             }
 
-            // hInfo.N = Normalize(norm);
-
             // printf("Bari cords = %f\n", b0 + b1 + b2);
             hInfo.z = t;
             hInfo.p = ray.p + ray.dir*t;
+            hInfo.uvw = GetTexCoord(faceID, Vec3f(b0, b1, b2));
 
             return true;
         }
@@ -372,43 +378,4 @@ Vec3f vecMin(const Vec3f& vec1, const Vec3f& vec2){
 
 Vec3f vecMax(const Vec3f& vec1, const Vec3f& vec2){
     return Vec3f(Max(vec1.x, vec2.x), Max(vec1.y, vec2.y), Max(vec1.z, vec2.z));
-}
-
-bool IntersectBox(Box box, Ray const &ray){ 
-    Vec3f cord1 = box.pmax;
-    Vec3f cord2 = box.pmin;
-    float t;
-    float cords[] = {cord1.x, cord1.y, cord1.z, cord2.x, cord2.y, cord2.z};
-    // for(int i = 0; i < 6; i++){
-    float t1 = -((ray.p.x + cord1.x)/ray.dir.x);
-    if(t1 > 0.0001){
-        return true;
-    }
-
-    float t2 = -((ray.p.x + cord2.x)/ray.dir.x);
-    if(t2 > 0.0001){
-        return true;
-    }
-   
-    float t3 = -((ray.p.y + cord1.y)/ray.dir.y);
-    if(t3 > 0.0001){
-        return true;
-    }
-
-    float t4 = -((ray.p.y + cord2.y)/ray.dir.y);
-    if(t4 > 0.0001){
-        return true;
-    }
-    
-    float t5 = -((ray.p.z + cord1.z)/ray.dir.z);
-    if(t5 > 0.0001){
-        return true;
-    }
-
-    float t6 = -((ray.p.z + cord2.z)/ray.dir.z);
-    if(t6 > 0.0001){
-        return true;
-    }
-
-    return false;
 }

@@ -32,7 +32,7 @@ Color24 *pixels;
 Node rootNode;
 MaterialList matList; 
 LightList lightList;
-Color backgroundColor = Color(0, 0, 0);
+TexturedColor background;
 TexturedColor env;
 
 
@@ -46,7 +46,7 @@ float imageHeight;
 float maxT = BIGFLOAT;
 
 int camOffset = 1;
-int bounceNum = 5;
+int bounceNum = 8;
 
 const int numThreads = 16 ;
 // const int numThreads = thread::hardware_concurrency();
@@ -70,7 +70,8 @@ void RayTracer::BeginRender(){
     
     matList = scene.materials;
     lightList = scene.lights;
-    env = scene.background;
+    env = scene.environment;
+    background = scene.background;
 
     cam = GetCamera();
     rootNode = scene.rootNode;
