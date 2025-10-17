@@ -56,18 +56,21 @@ RayTracer sceneRenderer;
 
 
 int main (int argc, char** argv){
-    sceneRenderer.LoadScene("sceneFiles/boxScene.xml");
+
+    sceneRenderer.LoadScene("sceneFiles/testScene.xml");
     ShowViewport(&sceneRenderer, false);
     return 0;
 }
 
 void RayTracer::BeginRender(){
+
     // printf("in begin render\n");
     scene = GetScene();
     RenderImage &sceneImage = GetRenderImage();
     pixels = sceneImage.GetPixels();
     zBuf = sceneImage.GetZBuffer();
-    
+                thread t([&]{
+
     matList = scene.materials;
     lightList = scene.lights;
     env = scene.environment;
@@ -134,10 +137,13 @@ void RayTracer::BeginRender(){
     }
 
     for(auto& th : threads) th.join();
+});
+    t.detach();
 
     sceneImage.ComputeZBufferImage();
     // sceneImage.SaveZImage("project2ZBuffer.png");
     sceneImage.SaveImage("renderedImage.png");
+
 }
 
 void RayTracer::initalRays(int i, Matrix4f wsTransMatrix){

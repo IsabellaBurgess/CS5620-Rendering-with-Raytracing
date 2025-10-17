@@ -140,25 +140,25 @@ bool TriObj::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
 
     
 
-    // if()
-    // {
-    //         // printf("traced node\n");
+    if(TraceBVHNode(ray, hInfo, hitSide, bvhTree.GetRootNodeID()))
+    {
+            // printf("traced node\n");
 
-    //     return true;
-    //         }
+        return true;
+            }
     
 
     // if(boundBox.IntersectRay(ray, __FLT_MAX__)){
     //     // printf("in box\n");
-    //     for(int i = 0; i < this->nf; i++) {
-    //         // printf("face number is %d\n", i);
-    //         if(this->IntersectTriangle(ray, hInfo, hitSide, i)){
-    //             hitFound=true;
-    //         }
-    //     }
+        // for(int i = 0; i < this->nf; i++) {
+        //     // printf("face number is %d\n", i);
+        //     if(this->IntersectTriangle(ray, hInfo, hitSide, i)){
+        //         hitFound=true;
+        //     }
+        // }
     // }
 
-    return TraceBVHNode(ray, hInfo, hitSide, bvhTree.GetRootNodeID());
+    return hitFound;
 }
 
 bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, unsigned int faceID ) const{
@@ -179,7 +179,8 @@ bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, uns
 
     float t = -(((ray.p % norm) + h)/(ray.dir % norm));
     
-    if (t > 0.001 && t < hInfo.z){
+    if (t > 0.001){
+        if(t < hInfo.z){
             
         Vec2f newV0;
         Vec2f newV1;
@@ -262,6 +263,7 @@ bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, uns
         }
         
     }
+}
 
     return false;
     
