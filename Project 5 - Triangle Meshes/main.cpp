@@ -61,13 +61,15 @@ int main (int argc, char** argv){
 }
 
 void RayTracer::BeginRender(){
+
     // printf("in begin render\n");
     scene = GetScene();
     RenderImage &sceneImage = GetRenderImage();
     pixels = sceneImage.GetPixels();
     zBuf = sceneImage.GetZBuffer();
 
-    
+    thread t([&]{
+
     matList = scene.materials;
     lightList = scene.lights;
     
@@ -132,6 +134,8 @@ void RayTracer::BeginRender(){
     }
 
     for(auto& th : threads) th.join();
+});
+    t.detach();
 
     sceneImage.ComputeZBufferImage();
     // sceneImage.SaveZImage("project2ZBuffer.png");

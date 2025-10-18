@@ -56,7 +56,7 @@ RayTracer sceneRenderer;
 
 
 int main (int argc, char** argv){
-    sceneRenderer.LoadScene("sceneFiles/testScene.xml");
+    sceneRenderer.LoadScene("sceneFiles/boxScene.xml");
     ShowViewport(&sceneRenderer, false);
     return 0;
 }
