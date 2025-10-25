@@ -10,6 +10,8 @@ using namespace cy;
 float closest = __FLT_MAX__;
 
 bool IntersectBox(Box box, Ray const &ray);
+Vec3f vecMin(const Vec3f& vec1, const Vec3f& vec2);
+Vec3f vecMax(const Vec3f& vec1, const Vec3f& vec2);
 
 
 bool Sphere::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
@@ -119,7 +121,7 @@ bool TriObj::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
     
     bool hitFound = false;
 
-    if(IntersectBox(boundBox, ray)){
+    if(boundBox.IntersectRay(ray, __FLT_MAX__)){
         for(int i = 0; i < this->nf; i++) {
             if(this->IntersectTriangle(ray, hInfo, hitSide, i)){
                 hitFound=true;
@@ -191,12 +193,12 @@ bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, uns
 
   
         bool insideTriangle = false;
-        if(area0 >= 0.0 && area1 >= 0.0 && area2 >= 0.0)
+        if(area0 > 0.0 && area1 > 0.0 && area2 > 0.0)
         {
             insideTriangle = true;
         }
         
-        if(area0 <= 0.0 && area1 <= 0.0 && area2 <= 0.0){
+        if(area0 < 0.0 && area1 < 0.0 && area2 < 0.0){
             insideTriangle = true;
         }
 
@@ -212,7 +214,8 @@ bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, uns
             float b1 = area1/areaFull;
             float b2 = 1 - (b0+b1);
 
-            hInfo.N = (b0*norm0 + b1*norm1 + b2*norm2);
+            // hInfo.N = (b0*norm0 + b1*norm1 + b2*norm2);
+            hInfo.N = GetNormal(faceID, Vec3f(b0, b1, b2)).GetNormalized();
 
             float backCheck = hInfo.N%ray.dir;
             if(backCheck > 0 ){
@@ -240,6 +243,37 @@ bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, uns
     
 }
 
+//Method implemented with help from Devin Fink
+//Ray-AABB intersection 
+bool Box::IntersectRay(Ray const &r, float t_max) const{
+    Vec3f boxMax = pmax;
+    Vec3f boxMin = pmin;
+
+    Vec3f dir = r.dir;
+    Vec3f p = r.p;
+    auto safeInv = [](float d){
+        return (fabs(d) > 1e-8f) ? (1.0f/d):
+        std::numeric_limits<float>::infinity();
+    };
+
+    Vec3f invR = Vec3f(safeInv(dir.x), safeInv(dir.y), safeInv(dir.z));
+
+    Vec3f tMin = vecMin(Vec3f(invR * (boxMax - p)), Vec3f(invR * (boxMin - p)));
+    Vec3f tMax = vecMax(Vec3f(invR * (boxMax - p)), Vec3f(invR * (boxMin - p)));
+
+    float t0 = Max(tMin.x, tMin.y, tMin.z);
+    float t1 = Min(tMax.x, tMax.y, tMax.z);
+
+    return t0 <= t1 && t1 >= 0.0f;
+}
+
+Vec3f vecMin(const Vec3f& vec1, const Vec3f& vec2){
+    return Vec3f(Min(vec1.x, vec2.x), Min(vec1.y, vec2.y), Min(vec1.z, vec2.z));
+}
+
+Vec3f vecMax(const Vec3f& vec1, const Vec3f& vec2){
+    return Vec3f(Max(vec1.x, vec2.x), Max(vec1.y, vec2.y), Max(vec1.z, vec2.z));
+}
 
 bool IntersectBox(Box box, Ray const &ray){ 
     Vec3f cord1 = box.pmax;

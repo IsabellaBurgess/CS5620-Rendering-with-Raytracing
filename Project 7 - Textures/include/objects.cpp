@@ -219,12 +219,12 @@ bool TriObj::IntersectTriangle( Ray const &ray, HitInfo &hInfo, int hitSide, uns
 
   
         bool insideTriangle = false;
-        if(area0 >= 0.0 && area1 >= 0.0 && area2 >= 0.0)
+        if(area0 > 0.0 && area1 > 0.0 && area2 > 0.0)
         {
             insideTriangle = true;
         }
         
-        if(area0 <= 0.0 && area1 <= 0.0 && area2 <= 0.0){
+        if(area0 < 0.0 && area1 < 0.0 && area2 < 0.0){
             insideTriangle = true;
         }
 

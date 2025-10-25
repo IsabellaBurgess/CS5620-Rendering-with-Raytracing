@@ -37,6 +37,8 @@ Color backgroundColor = Color(0, 0, 0);
 float *zBuf;
 
 double wsHeight;
+
+
 double wsWidth;
 float imageWidth;
 float imageHeight;
@@ -44,7 +46,7 @@ float imageHeight;
 float maxT = BIGFLOAT;
 
 int camOffset = 1;
-int bounceNum = 5;
+int bounceNum = 1;
 
 const int numThreads = 16 ;
 // const int numThreads = thread::hardware_concurrency();
@@ -54,7 +56,7 @@ RayTracer sceneRenderer;
 
 
 int main (int argc, char** argv){
-    sceneRenderer.LoadScene("sceneFiles/boxScene.xml");
+    sceneRenderer.LoadScene("sceneFiles/testScene.xml");
 
     ShowViewport(&sceneRenderer, false);
     return 0;
