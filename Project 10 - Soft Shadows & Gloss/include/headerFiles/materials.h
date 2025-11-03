@@ -3,8 +3,8 @@
 ///
 /// \file       materials.h 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    7.0
-/// \date       September 19, 2025
+/// \version    7.1
+/// \date       October 25, 2025
 ///
 /// \brief Example source for CS 6620 - University of Utah.
 ///
@@ -41,8 +41,9 @@ public:
     const TexturedFloat& Glossiness() const { return glossiness; }
     const TexturedColor& Reflection() const { return reflection; }
     const TexturedColor& Refraction() const { return refraction; }
-    const Color&         Absorption() const { return absorption; }
-    float                IOR       () const { return ior;        }
+ 
+    Color Absorption( int mtlID=0 ) const override { return absorption; }
+    float IOR       ( int mtlID=0 ) const override { return ior; }
  
 protected:
     TexturedColor diffuse    = Color(0.5f);
@@ -92,7 +93,9 @@ public:
     void SetTransmittanceTexture( TextureMap *tex ) { transmittance.SetTexture(tex); }
  
     Color Shade( ShadeInfo const &shadeInfo ) const override;
-    void SetViewportMaterial( int mtlID=0 ) const override; // used for OpenGL display
+    Color Absorption         ( int mtlID=0 ) const override { return absorption; }
+    float IOR                ( int mtlID=0 ) const override { return ior;        }
+    void  SetViewportMaterial( int mtlID=0 ) const override;    // used for OpenGL display
  
 private:
     TexturedColor baseColor     = Color(0.5f);  // albedo for dielectrics, F0 for metals
@@ -110,9 +113,10 @@ class MultiMtl : public Material
 public:
     virtual ~MultiMtl() { for ( Material *m : mtls ) delete m; }
  
-    Color Shade( ShadeInfo const &sInfo ) const override { int m = sInfo.MaterialID(); return m<(int)mtls.size() ? mtls[m]->Shade(sInfo) : Color(1,1,1); }
- 
-    void SetViewportMaterial( int mtlID=0 ) const override { if ( mtlID<(int)mtls.size() ) mtls[mtlID]->SetViewportMaterial(); }
+    Color Shade( ShadeInfo const &sInfo ) const override { int m=sInfo.MaterialID(); return m<(int)mtls.size() ? mtls[m]->Shade(sInfo) : Color(1,1,1); }
+    Color Absorption         ( int mtlID=0 ) const override { return mtlID<(int)mtls.size() ? mtls[mtlID]->Absorption     (mtlID) : Material::Absorption     (mtlID); }
+    float IOR                ( int mtlID=0 ) const override { return mtlID<(int)mtls.size() ? mtls[mtlID]->IOR            (mtlID) : Material::IOR            (mtlID); }
+    void  SetViewportMaterial( int mtlID=0 ) const override { if   ( mtlID<(int)mtls.size() ) mtls[mtlID]->SetViewportMaterial(); }
  
     void AppendMaterial( Material *m ) { mtls.push_back(m); }
  

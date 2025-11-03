@@ -6,13 +6,13 @@
       <scale y="0.4"/>
       <translate y="-0.1"/>
     </background>
-    <environment value="0.3" texture="clouds.png"/>
+    <environment value="0.3" texture="sceneFiles/textures/clouds.png"/>
  
     <!-- Objects -->
     <object type="plane" material="ground">
       <scale value="500"/>
     </object>
-    <object type="obj" name="teapot.obj" material="bricks">
+    <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="bricks">
       <scale value="0.7"/>
       <rotate angle="-50" z="1"/>
       <translate x="0" y="0" z="0"/>
@@ -87,7 +87,7 @@
       <reflection value="0.5"/>
     </material>
     <material type="blinn" name="bricks">
-      <diffuse texture="bricks.png">
+      <diffuse texture="sceneFiles/textures/bricks.png">
       </diffuse>
       <specular value="0.3"/>
       <glossiness value="10"/>

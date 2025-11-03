@@ -64,7 +64,7 @@ RNG rng;
 
 int main (int argc, char** argv){
 
-    sceneRenderer.LoadScene("sceneFiles/testScene.xml");
+    sceneRenderer.LoadScene("sceneFiles/textureTestScene.xml");
     ShowViewport(&sceneRenderer, false);
     return 0;
 }

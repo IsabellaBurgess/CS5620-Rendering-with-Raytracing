@@ -14,13 +14,13 @@ using namespace std;
 class Shadows : public ShadeInfo
 {
 public: 
-    Shadows( std::vector<Light*> const &lightList, TexturedColor const &environment ) : ShadeInfo(lightList, environment) {}
+    Shadows( std::vector<Light*> const &lightList, TexturedColor const &environment, RNG &r ) : ShadeInfo(lightList, environment, r) {}
 
     // calculateRay const* renderer;
     float TraceShadowRay( Ray const &ray, float t_max) const override;
     bool shadowRay(Node *node, Ray ray, HitInfo &hInfo);
 
-    Color TraceSecondaryRay( Ray const &ray, float &dist ) const override; 
+    Color TraceSecondaryRay( Ray const &ray, float &dist, bool reflection ) const override; 
 
     bool CanBounce() const override;
 

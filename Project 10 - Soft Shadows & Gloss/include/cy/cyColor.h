@@ -42,201 +42,223 @@
 namespace cy {
 //-------------------------------------------------------------------------------
 
-class ColorA;
 class Color24;
 class Color32;
 
+template <typename T> class Color4;
+
 //-------------------------------------------------------------------------------
 
-//! RGB color class with 3 float components
+//! RGB color class with 3 components
 
-class Color
+template <typename T>
+class Color3
 {
-	CY_NODISCARD friend Color operator+( float const& v, Color const &c ) { return   c+v;  }	//!< Addition with a constant
-	CY_NODISCARD friend Color operator-( float const& v, Color const &c ) { return -(c-v); }	//!< Subtraction from a constant
-	CY_NODISCARD friend Color operator*( float const& v, Color const &c ) { return   c*v;  }	//!< Multiplication with a constant
+	CY_NODISCARD friend Color3<T> operator+( T v, Color3<T> const &c ) { return   c+v;  }	//!< Addition with a constant
+	CY_NODISCARD friend Color3<T> operator-( T v, Color3<T> const &c ) { return -(c-v); }	//!< Subtraction from a constant
+	CY_NODISCARD friend Color3<T> operator*( T v, Color3<T> const &c ) { return   c*v;  }	//!< Multiplication with a constant
 
 public:
 
 	//!@name Color components
-	float r, g, b;
+	T r, g, b;
 
 	//!@name Constructors
-	Color() CY_CLASS_FUNCTION_DEFAULT
-	Color( Color const &c ) : r(c.r), g(c.g), b(c.b) {}
-	explicit Color( float _r, float _g, float _b ) : r(_r), g(_g), b(_b) {}
-	explicit Color( float const *c ) : r(c[0]), g(c[1]), b(c[2]) {}
-	explicit Color( float rgb ) : r(rgb), g(rgb), b(rgb) {}
-	explicit Color( ColorA  const &c );
-	explicit Color( Color24 const &c );
-	explicit Color( Color32 const &c );
+	Color3() CY_CLASS_FUNCTION_DEFAULT
+	explicit Color3( T _r, T _g, T _b ) : r( _r ), g( _g ), b( _b ) {}
+	explicit Color3( T const *c )       : r(c[0]), g(c[1]), b(c[2]) {}
+	explicit Color3( T rgb )            : r(rgb ), g(rgb ), b(rgb ) {}
+	explicit Color3( Color4<T> const &c );
+	explicit Color3( Color24   const &c );
+	explicit Color3( Color32   const &c );
+	template <typename S> Color3( Color3<S> const &c ) : r(c.r), g(c.g), b(c.b) {}
+	template <typename S> Color3( Color4<S> const &c ) : r(c.r), g(c.g), b(c.b) {}
+
 
 	//!@name Set & Get value methods
-	void SetBlack() { r=0.0f; g=0.0f; b=0.0f; }							//!< Sets r, g and b components as zero.
-	void SetWhite() { r=1.0f; g=1.0f; b=1.0f; }							//!< Sets r, g and b components as one.
-	void Set     ( float _r, float _g, float _b ) { r=_r; g=_g; b=_b; }	//!< Sets r, g and b components as given.
-	void Set     ( float const *v ) { r=v[0]; g=v[1]; b=v[2]; }			//!< Sets r, g and b components using the values in the given array.
-	void GetValue( float *v ) const { v[0]=r; v[1]=g; v[2]=b; }			//!< Puts r, g and b values into the array.
+	void SetBlack()                   { r=0;    g=0;    b=0;    }	//!< Sets r, g and b components as zero.
+	void SetWhite()                   { r=1;    g=1;    b=1;    }	//!< Sets r, g and b components as one.
+	void Set     ( T _r, T _g, T _b ) { r=_r;   g=_g;   b=_b;   }	//!< Sets r, g and b components as given.
+	void Set     ( T const *v )       { r=v[0]; g=v[1]; b=v[2]; }	//!< Sets r, g and b components using the values in the given array.
+	void GetValue( T *v )       const { v[0]=r; v[1]=g; v[2]=b; }	//!< Puts r, g and b values into the array.
 
 	//!@name Gray-scale methods
-	CY_NODISCARD float Sum  () const { return r + g + b; }
-	CY_NODISCARD float Gray () const { return Sum() / 3.0f; }
-	CY_NODISCARD float Luma1() const { return 0.299f *r + 0.587f *g + 0.114f *b; }
-	CY_NODISCARD float Luma2() const { return 0.2126f*r + 0.7152f*g + 0.0722f*b; }
-	CY_NODISCARD float Min  () const { return r<g ? (r<b ? r : b) : (g<b ? g : b); }
-	CY_NODISCARD float Max  () const { return r>g ? (r>b ? r : b) : (g>b ? g : b); }
+	CY_NODISCARD T Sum  () const { return r + g + b; }
+	CY_NODISCARD T Gray () const { return Sum() / T(3); }
+	CY_NODISCARD T Luma1() const { return T(0.299 )*r + T(0.587 )*g + T(0.114 )*b; }
+	CY_NODISCARD T Luma2() const { return T(0.2126)*r + T(0.7152)*g + T(0.0722)*b; }
+	CY_NODISCARD T Min  () const { return r<g ? (r<b ? r : b) : (g<b ? g : b); }
+	CY_NODISCARD T Max  () const { return r>g ? (r>b ? r : b) : (g>b ? g : b); }
 
 	//!@name General methods
-	CY_NODISCARD bool IsNegative() const { return r<0 || g<0 || b<0; }				//!< Returns true if any component is negative.
-	CY_NODISCARD bool IsBlack   () const { return r==0.0f && g==0.0f && b==0.0f; }	//!< Returns true if all components are exactly zero.
+	CY_NODISCARD bool IsNegative() const { return r< 0 || g< 0 || b< 0; }	//!< Returns true if any component is negative.
+	CY_NODISCARD bool IsBlack   () const { return r==0 && g==0 && b==0; }	//!< Returns true if all components are exactly zero.
 	CY_NODISCARD bool IsFinite  () const { return cy::IsFinite(r) && cy::IsFinite(g) && cy::IsFinite(b); }	//!< Returns true if all components are finite real numbers.
 
-	CY_NODISCARD Color Linear2sRGB() const { auto f=[](float cl){ return cl<0.0031308f ? cl*12.92f : powf(cl,0.41666f)*1.055f-0.055f; }; return Color(f(r),f(g),f(b)); }	//!< Converts linear RGB to sRGB.
-	CY_NODISCARD Color sRGB2Linear() const { auto f=[](float cs){ return cs<=0.04045f  ? cs/12.92f : powf( (cs+0.055f)/1.055f, 2.4f); }; return Color(f(r),f(g),f(b)); }	//!< Converts sRGB to linear RGB.
+	CY_NODISCARD Color3<T> Linear2sRGB() const { auto f=[](T cl){ return cl<T(0.0031308) ? cl*T(12.92) : (T)std::pow(cl,T(0.41666))*T(1.055)-T(0.055); }; return Color3<T>(f(r),f(g),f(b)); }	//!< Converts linear RGB to sRGB.
+	CY_NODISCARD Color3<T> sRGB2Linear() const { auto f=[](T cs){ return cs<=T(0.04045)  ? cs/T(12.92) : (T)std::pow( (cs+T(0.055))/T(1.055), T(2.4)); }; return Color3<T>(f(r),f(g),f(b)); }	//!< Converts sRGB to linear RGB.
 
 	//!@name Generic template methods
-	template <typename F = float(*)(float)>
+	template <typename F = T(*)(T)>
 	void Apply( F func ) { r=func(r); g=func(g); b=func(b); }	//!< Applies the given function to all color components.
-	template <typename F = float(*)(float)>
-	CY_NODISCARD Color GetApplied( F func ) const { Color c=*this; c.Apply<F>(func); return c; }	//!< Returns the resulting color after applying the given function to all color components.
+	template <typename F = T(*)(T)>
+	CY_NODISCARD Color3<T> GetApplied( F func ) const { Color3<T> c=*this; c.Apply<F>(func); return c; }	//!< Returns the resulting color after applying the given function to all color components.
 
 	//!@name Limit methods
-	void Clamp   ( float limitMin=0.0f, float limitMax=1.0f ) { ClampMin(limitMin); ClampMax(limitMax); }
-	void ClampMin( float limitMin=0.0f ) { Apply([&limitMin](float v){ return cy::Max(v,limitMin); }); }
-	void ClampMax( float limitMax=1.0f ) { Apply([&limitMax](float v){ return cy::Min(v,limitMax); }); }
+	void Clamp   ( T limitMin=0, T limitMax=1 ) { ClampMin(limitMin); ClampMax(limitMax); }
+	void ClampMin( T limitMin=0 ) { Apply([&limitMin](T v){ return cy::Max(v,limitMin); }); }
+	void ClampMax( T limitMax=1 ) { Apply([&limitMax](T v){ return cy::Min(v,limitMax); }); }
 	void Abs() { Apply(std::abs); }
 
 	//!@name Unary operators
-	CY_NODISCARD Color  operator - () const { return Color(-r,-g,-b); } 
+	CY_NODISCARD Color3<T>  operator - () const { return Color3<T>(-r,-g,-b); } 
 
 	//!@name Binary operators
-	CY_NODISCARD Color operator + ( Color const &c ) const { return Color(r+c.r, g+c.g, b+c.b); }
-	CY_NODISCARD Color operator - ( Color const &c ) const { return Color(r-c.r, g-c.g, b-c.b); }
-	CY_NODISCARD Color operator * ( Color const &c ) const { return Color(r*c.r, g*c.g, b*c.b); }
-	CY_NODISCARD Color operator / ( Color const &c ) const { return Color(r/c.r, g/c.g, b/c.b); }
-	CY_NODISCARD Color operator + ( float const &n ) const { return Color(r+n, g+n, b+n); }
-	CY_NODISCARD Color operator - ( float const &n ) const { return Color(r-n, g-n, b-n); }
-	CY_NODISCARD Color operator * ( float const &n ) const { return Color(r*n, g*n, b*n); }
-	CY_NODISCARD Color operator / ( float const &n ) const { return Color(r/n, g/n, b/n); }
+	CY_NODISCARD Color3<T> operator + ( Color3<T> const &c ) const { return Color3<T>(r+c.r, g+c.g, b+c.b); }
+	CY_NODISCARD Color3<T> operator - ( Color3<T> const &c ) const { return Color3<T>(r-c.r, g-c.g, b-c.b); }
+	CY_NODISCARD Color3<T> operator * ( Color3<T> const &c ) const { return Color3<T>(r*c.r, g*c.g, b*c.b); }
+	CY_NODISCARD Color3<T> operator / ( Color3<T> const &c ) const { return Color3<T>(r/c.r, g/c.g, b/c.b); }
+	CY_NODISCARD Color3<T> operator + ( T                v ) const { return Color3<T>(r+v,   g+v,   b+v  ); }
+	CY_NODISCARD Color3<T> operator - ( T                v ) const { return Color3<T>(r-v,   g-v,   b-v  ); }
+	CY_NODISCARD Color3<T> operator * ( T                v ) const { return Color3<T>(r*v,   g*v,   b*v  ); }
+	CY_NODISCARD Color3<T> operator / ( T                v ) const { return Color3<T>(r/v,   g/v,   b/v  ); }
 
 	//!@name Assignment operators
-	Color& operator += ( Color const &c ) { r+=c.r; g+=c.g; b+=c.b; return *this; }
-	Color& operator -= ( Color const &c ) { r-=c.r; g-=c.g; b-=c.b; return *this; }
-	Color& operator *= ( Color const &c ) { r*=c.r; g*=c.g; b*=c.b; return *this; }
-	Color& operator /= ( Color const &c ) { r/=c.r; g/=c.g; b/=c.b; return *this; }
-	Color& operator += ( float const &n ) { r+=n; g+=n; b+=n; return *this; }
-	Color& operator -= ( float const &n ) { r-=n; g-=n; b-=n; return *this; }
-	Color& operator *= ( float const &n ) { r*=n; g*=n; b*=n; return *this; }
-	Color& operator /= ( float const &n ) { r/=n; g/=n; b/=n; return *this; }
+	Color3<T>& operator += ( Color3<T> const &c ) { r+=c.r; g+=c.g; b+=c.b; return *this; }
+	Color3<T>& operator -= ( Color3<T> const &c ) { r-=c.r; g-=c.g; b-=c.b; return *this; }
+	Color3<T>& operator *= ( Color3<T> const &c ) { r*=c.r; g*=c.g; b*=c.b; return *this; }
+	Color3<T>& operator /= ( Color3<T> const &c ) { r/=c.r; g/=c.g; b/=c.b; return *this; }
+	Color3<T>& operator += ( T                v ) { r+=v;   g+=v;   b+=v;   return *this; }
+	Color3<T>& operator -= ( T                v ) { r-=v;   g-=v;   b-=v;   return *this; }
+	Color3<T>& operator *= ( T                v ) { r*=v;   g*=v;   b*=v;   return *this; }
+	Color3<T>& operator /= ( T                v ) { r/=v;   g/=v;   b/=v;   return *this; }
 
-	//!@name Test operators
-	CY_NODISCARD bool operator == ( Color const &c ) const { return ( (c.r==r) && (c.g==g) && (c.b==b) ); }
-	CY_NODISCARD bool operator != ( Color const &c ) const { return ( (c.r!=r) || (c.g!=g) || (c.b!=b) ); }
+	//!@name Comparison operators
+	CY_NODISCARD bool operator == ( Color3<T> const &c ) const { return ( (r==c.r) && (g==c.g) && (b==c.b) ); }
+	CY_NODISCARD bool operator != ( Color3<T> const &c ) const { return ( (r!=c.r) || (g!=c.g) || (b!=c.b) ); }
+	CY_NODISCARD bool operator <  ( Color3<T> const &c ) const { return ( (r< c.r) && (g< c.g) && (b< c.b) ); }
+	CY_NODISCARD bool operator <= ( Color3<T> const &c ) const { return ( (r<=c.r) && (g<=c.g) && (b<=c.b) ); }
+	CY_NODISCARD bool operator >  ( Color3<T> const &c ) const { return ( (r> c.r) && (g> c.g) && (b> c.b) ); }
+	CY_NODISCARD bool operator >= ( Color3<T> const &c ) const { return ( (r>=c.r) && (g>=c.g) && (b>=c.b) ); }
 
 	//!@name Access operators
-	CY_NODISCARD float& operator [] ( int i )       { return (&r)[i]; }
-	CY_NODISCARD float  operator [] ( int i ) const { return (&r)[i]; }
+	CY_NODISCARD T& operator [] ( int i )       { return (&r)[i]; }
+	CY_NODISCARD T  operator [] ( int i ) const { return (&r)[i]; }
 
 	//!@name Static methods
-	CY_NODISCARD static Color Black() { return Color(0.0f,0.0f,0.0f); }	//!< Returns a black color.
-	CY_NODISCARD static Color White() { return Color(1.0f,1.0f,1.0f); }	//!< Returns a white color.
+	CY_NODISCARD static Color3<T> Black() { return Color3<T>(0,0,0); }	//!< Returns a black color.
+	CY_NODISCARD static Color3<T> White() { return Color3<T>(1,1,1); }	//!< Returns a white color.
 };
 
 //-------------------------------------------------------------------------------
 
-//! RGBA color class with 4 float components
+typedef Color3<float> Color;
 
-class ColorA
+//-------------------------------------------------------------------------------
+
+//! RGBA color class with 4 components
+
+template <typename T>
+class Color4
 {
-	CY_NODISCARD friend ColorA operator + ( float const &v, ColorA const &c ) { return   c+v;  }	//!< Addition with a constant
-	CY_NODISCARD friend ColorA operator - ( float const &v, ColorA const &c ) { return -(c-v); }	//!< Subtraction from a constant
-	CY_NODISCARD friend ColorA operator * ( float const &v, ColorA const &c ) { return   c*v;  }	//!< Multiplication with a constant
+	CY_NODISCARD friend Color4<T> operator + ( T v, Color4<T> const &c ) { return   c+v;  }	//!< Addition with a constant
+	CY_NODISCARD friend Color4<T> operator - ( T v, Color4<T> const &c ) { return -(c-v); }	//!< Subtraction from a constant
+	CY_NODISCARD friend Color4<T> operator * ( T v, Color4<T> const &c ) { return   c*v;  }	//!< Multiplication with a constant
 
 public:
 
 	//!@name Color components
-	float r, g, b, a;
+	T r, g, b, a;
 
 	//!@name Constructors
-	ColorA() CY_CLASS_FUNCTION_DEFAULT
-	ColorA( ColorA const &c ) : r(c.r), g(c.g), b(c.b), a(c.a) {}
-	explicit ColorA( float _r, float _g, float _b, float _a=1 ) : r(_r), g(_g), b(_b), a(_a) {}
-	explicit ColorA( float const *c ) : r(c[0]), g(c[1]), b(c[2]), a(c[3]) {}
-	explicit ColorA( float rgb, float _a=1 ) : r(rgb), g(rgb), b(rgb), a(_a) {}
-	explicit ColorA( Color   const &c, float _a=1 ) : r(c.r), g(c.g), b(c.b), a(_a) {}
-	explicit ColorA( Color24 const &c, float _a=1 );
-	explicit ColorA( Color32 const &c );
+	Color4() CY_CLASS_FUNCTION_DEFAULT
+	explicit Color4( T _r, T _g, T _b, T _a=1 )   : r( _r ), g( _g ), b( _b ), a( _a ) {}
+	explicit Color4( T const *c )                 : r(c[0]), g(c[1]), b(c[2]), a(c[3]) {}
+	explicit Color4( T rgb, T _a=1 )              : r(rgb ), g(rgb ), b(rgb ), a( _a ) {}
+	explicit Color4( Color3<T> const &c, T _a=1 ) : r(c.r ), g(c.g ), b(c.b ), a( _a ) {}
+	explicit Color4( Color24   const &c, T _a=1 );
+	explicit Color4( Color32   const &c );
+	template <typename S> explicit Color4( Color3<S> const &c, T _a=1 ) : r(c.r), g(c.g), b(c.b), a( _a) {}
+	template <typename S> explicit Color4( Color4<S> const &c )         : r(c.r), g(c.g), b(c.b), a(c.a) {}
 
 	//!@name Set & Get value methods
-	void SetBlack( float alpha=1.0f ) { r=0.0f; g=0.0f; b=0.0f; a=alpha; }					//!< Sets r, g, and b components as zero and a component as given.
-	void SetWhite( float alpha=1.0f ) { r=1.0f; g=1.0f; b=1.0f; a=alpha; }					//!< Sets r, g, and b components as one and a component as given.
-	void Set     ( float _r, float _g, float _b, float _a=1 ) { r=_r; g=_g; b=_b; a=_a; }	//!< Sets r, g, b and a components as given.
-	void Set     ( float const *v ) { r=v[0]; g=v[1]; b=v[2]; a=v[3]; }						//!< Sets r, g, b and a components using the values in the given array.
-	void GetValue( float *v ) const { v[0]=r; v[1]=g; v[2]=b; v[3]=a; }						//!< Puts r, g, b and a values into the array.
+	void SetBlack( T alpha=1 )                { r=0;    g=0;    b=0;    a=alpha; }	//!< Sets r, g, and b components as zero and a component as given.
+	void SetWhite( T alpha=1 )                { r=1;    g=1;    b=1;    a=alpha; }	//!< Sets r, g, and b components as one and a component as given.
+	void Set     ( T _r, T _g, T _b, T _a=1 ) { r=_r;   g=_g;   b=_b;   a=_a;    }	//!< Sets r, g, b and a components as given.
+	void Set     ( T const *v )               { r=v[0]; g=v[1]; b=v[2]; a=v[3];  }	//!< Sets r, g, b and a components using the values in the given array.
+	void GetValue( T *v )               const { v[0]=r; v[1]=g; v[2]=b; v[3]=a;  }	//!< Puts r, g, b and a values into the array.
 
 	//!@name Gray-scale methods
-	CY_NODISCARD float Sum  () const { return r + g + b; }
-	CY_NODISCARD float Gray () const { return Sum() / 3.0f; }
-	CY_NODISCARD float Luma1() const { return 0.299f *r + 0.587f *g + 0.114f *b; }
-	CY_NODISCARD float Luma2() const { return 0.2126f*r + 0.7152f*g + 0.0722f*b; }
-	CY_NODISCARD float Min  () const { float mrg = r<g ? r : g; float mba = b<a ? b : a; return mrg<mba ? mrg : mba; }
-	CY_NODISCARD float Max  () const { float mrg = r>g ? r : g; float mba = b>a ? b : a; return mrg>mba ? mrg : mba; }
+	CY_NODISCARD T Sum  () const { return r + g + b; }
+	CY_NODISCARD T Gray () const { return Sum() / T(3); }
+	CY_NODISCARD T Luma1() const { return T(0.299 )*r + T(0.587 )*g + T(0.114 )*b; }
+	CY_NODISCARD T Luma2() const { return T(0.2126)*r + T(0.7152)*g + T(0.0722)*b; }
+	CY_NODISCARD T Min  () const { T mrg = r<g ? r : g; T mba = b<a ? b : a; return mrg<mba ? mrg : mba; }
+	CY_NODISCARD T Max  () const { T mrg = r>g ? r : g; T mba = b>a ? b : a; return mrg>mba ? mrg : mba; }
 
 	//!@name General methods
-	CY_NODISCARD bool IsNegative() const { return r<0 || g<0 || b<0 || a<0; }		//!< Returns true if any component is negative.
-	CY_NODISCARD bool IsBlack   () const { return r==0.0f && g==0.0f && b==0.0f; }	//!< Returns true if the r, g, and b components are exactly zero.
+	CY_NODISCARD bool IsNegative() const { return r< 0 || g< 0 || b< 0 || a<0; }	//!< Returns true if any component is negative.
+	CY_NODISCARD bool IsBlack   () const { return r==0 && g==0 && b==0; }			//!< Returns true if the r, g, and b components are exactly zero.
 	CY_NODISCARD bool IsFinite  () const { return cy::IsFinite(r) && cy::IsFinite(g) && cy::IsFinite(b) && cy::IsFinite(a); }	//!< Returns true if all components are finite real numbers.
 
-	CY_NODISCARD ColorA Linear2sRGB() const { return ColorA(Color(r,g,b).Linear2sRGB(),a); }	//!< Converts linear RGB to sRGB.
-	CY_NODISCARD ColorA sRGB2Linear() const { return ColorA(Color(r,g,b).sRGB2Linear(),a); }	//!< Converts sRGB to linear RGB.
+	CY_NODISCARD Color4<T> Linear2sRGB() const { return Color4<T>(Color(r,g,b).Linear2sRGB(),a); }	//!< Converts linear RGB to sRGB.
+	CY_NODISCARD Color4<T> sRGB2Linear() const { return Color4<T>(Color(r,g,b).sRGB2Linear(),a); }	//!< Converts sRGB to linear RGB.
 
 	//!@name Generic template methods
-	template <typename F = float(*)(float)>
+	template <typename F = T(*)(T)>
 	void Apply( F func ) { r=func(r); g=func(g); b=func(b); }	//!< Applies the given function to all color components.
-	template <typename F = float(*)(float)>
-	CY_NODISCARD ColorA GetApplied( F func ) const { ColorA c=*this; c.Apply<F>(func); return c; }	//!< Returns the resulting color after applying the given function to all color components.
+	template <typename F = T(*)(T)>
+	CY_NODISCARD Color4<T> GetApplied( F func ) const { Color4<T> c=*this; c.Apply<F>(func); return c; }	//!< Returns the resulting color after applying the given function to all color components.
 
 	//!@name Limit methods
-	void Clamp   ( float limitMin=0.0f, float limitMax=1.0f ) { ClampMin(limitMin); ClampMax(limitMax); }
-	void ClampMin( float limitMin=0.0f ) { Apply([&limitMin](float v){ return cy::Max(v,limitMin); }); }
-	void ClampMax( float limitMax=1.0f ) { Apply([&limitMax](float v){ return cy::Min(v,limitMax); }); }
+	void Clamp   ( T limitMin=0, T limitMax=1 ) { ClampMin(limitMin); ClampMax(limitMax); }
+	void ClampMin( T limitMin=0 ) { Apply([&limitMin](T v){ return cy::Max(v,limitMin); }); }
+	void ClampMax( T limitMax=1 ) { Apply([&limitMax](T v){ return cy::Min(v,limitMax); }); }
 	void Abs() { Apply(std::abs); }
 
 	//!@name Unary operators
-	CY_NODISCARD ColorA  operator - () const { return ColorA(-r,-g,-b,-a); } 
+	CY_NODISCARD Color4<T>  operator - () const { return Color4<T>(-r,-g,-b,-a); } 
 
 	//!@name Binary operators
-	CY_NODISCARD ColorA operator + ( ColorA const &c ) const { return ColorA(r+c.r, g+c.g, b+c.b, a+c.a); }
-	CY_NODISCARD ColorA operator - ( ColorA const &c ) const { return ColorA(r-c.r, g-c.g, b-c.b, a-c.a); }
-	CY_NODISCARD ColorA operator * ( ColorA const &c ) const { return ColorA(r*c.r, g*c.g, b*c.b, a*c.a); }
-	CY_NODISCARD ColorA operator / ( ColorA const &c ) const { return ColorA(r/c.r, g/c.g, b/c.b, a/c.a); }
-	CY_NODISCARD ColorA operator + ( float  const &n ) const { return ColorA(r+n, g+n, b+n, a+n); }
-	CY_NODISCARD ColorA operator - ( float  const &n ) const { return ColorA(r-n, g-n, b-n, a-n); }
-	CY_NODISCARD ColorA operator * ( float  const &n ) const { return ColorA(r*n, g*n, b*n, a*n); }
-	CY_NODISCARD ColorA operator / ( float  const &n ) const { return ColorA(r/n, g/n, b/n, a/n); }
+	CY_NODISCARD Color4<T> operator + ( Color4<T> const &c ) const { return Color4<T>(r+c.r, g+c.g, b+c.b, a+c.a); }
+	CY_NODISCARD Color4<T> operator - ( Color4<T> const &c ) const { return Color4<T>(r-c.r, g-c.g, b-c.b, a-c.a); }
+	CY_NODISCARD Color4<T> operator * ( Color4<T> const &c ) const { return Color4<T>(r*c.r, g*c.g, b*c.b, a*c.a); }
+	CY_NODISCARD Color4<T> operator / ( Color4<T> const &c ) const { return Color4<T>(r/c.r, g/c.g, b/c.b, a/c.a); }
+	CY_NODISCARD Color4<T> operator + ( T                v ) const { return Color4<T>(r+v,   g+v,   b+v,   a+v  ); }
+	CY_NODISCARD Color4<T> operator - ( T                v ) const { return Color4<T>(r-v,   g-v,   b-v,   a-v  ); }
+	CY_NODISCARD Color4<T> operator * ( T                v ) const { return Color4<T>(r*v,   g*v,   b*v,   a*v  ); }
+	CY_NODISCARD Color4<T> operator / ( T                v ) const { return Color4<T>(r/v,   g/v,   b/v,   a/v  ); }
 
 	//!@name Assignment operators
-	ColorA& operator += ( ColorA const &c ) { r+=c.r; g+=c.g; b+=c.b; a+=c.a; return *this; }
-	ColorA& operator -= ( ColorA const &c ) { r-=c.r; g-=c.g; b-=c.b; a-=c.a; return *this; }
-	ColorA& operator *= ( ColorA const &c ) { r*=c.r; g*=c.g; b*=c.b; a*=c.a; return *this; }
-	ColorA& operator /= ( ColorA const &c ) { r/=c.r; g/=c.g; b/=c.b; a/=c.a; return *this; }
-	ColorA& operator += ( float  const &n ) { r+=n; g+=n; b+=n; a+=n; return *this; }
-	ColorA& operator -= ( float  const &n ) { r-=n; g-=n; b-=n; a-=n; return *this; }
-	ColorA& operator *= ( float  const &n ) { r*=n; g*=n; b*=n; a*=n; return *this; }
-	ColorA& operator /= ( float  const &n ) { r/=n; g/=n; b/=n; a/=n; return *this; }
+	Color4<T>& operator += ( Color4<T> const &c ) { r+=c.r; g+=c.g; b+=c.b; a+=c.a; return *this; }
+	Color4<T>& operator -= ( Color4<T> const &c ) { r-=c.r; g-=c.g; b-=c.b; a-=c.a; return *this; }
+	Color4<T>& operator *= ( Color4<T> const &c ) { r*=c.r; g*=c.g; b*=c.b; a*=c.a; return *this; }
+	Color4<T>& operator /= ( Color4<T> const &c ) { r/=c.r; g/=c.g; b/=c.b; a/=c.a; return *this; }
+	Color4<T>& operator += ( T                v ) { r+=v;   g+=v;   b+=v;   a+=v;   return *this; }
+	Color4<T>& operator -= ( T                v ) { r-=v;   g-=v;   b-=v;   a-=v;   return *this; }
+	Color4<T>& operator *= ( T                v ) { r*=v;   g*=v;   b*=v;   a*=v;   return *this; }
+	Color4<T>& operator /= ( T                v ) { r/=v;   g/=v;   b/=v;   a/=v;   return *this; }
 
-	//!@name Test operators
-	CY_NODISCARD bool operator == ( ColorA const &c ) const { return ( (c.r==r) && (c.g==g) && (c.b==b) && (c.a==a) ); }
-	CY_NODISCARD bool operator != ( ColorA const &c ) const { return ( (c.r!=r) || (c.g!=g) || (c.b!=b) || (c.a!=a) ); }
+	//!@name Comparison operators
+	CY_NODISCARD bool operator == ( Color4<T> const &c ) const { return ( (r==c.r) && (g==c.g) && (b==c.b) && (a==c.a) ); }
+	CY_NODISCARD bool operator != ( Color4<T> const &c ) const { return ( (r!=c.r) || (g!=c.g) || (b!=c.b) || (a!=c.a) ); }
+	CY_NODISCARD bool operator <  ( Color4<T> const &c ) const { return ( (r< c.r) && (g< c.g) && (b< c.b) && (a< c.a) ); }
+	CY_NODISCARD bool operator <= ( Color4<T> const &c ) const { return ( (r<=c.r) && (g<=c.g) && (b<=c.b) && (a<=c.a) ); }
+	CY_NODISCARD bool operator >  ( Color4<T> const &c ) const { return ( (r> c.r) && (g> c.g) && (b> c.b) && (a> c.a) ); }
+	CY_NODISCARD bool operator >= ( Color4<T> const &c ) const { return ( (r>=c.r) && (g>=c.g) && (b>=c.b) && (a>=c.a) ); }
 
 	//!@name Access operators
-	CY_NODISCARD float& operator [] ( int i )       { return (&r)[i]; }
-	CY_NODISCARD float  operator [] ( int i ) const { return (&r)[i]; }
+	CY_NODISCARD T& operator [] ( int i )       { return (&r)[i]; }
+	CY_NODISCARD T  operator [] ( int i ) const { return (&r)[i]; }
 
 	//!@name Static methods
-	CY_NODISCARD static ColorA Black( float alpha=1.0f ) { return ColorA(0.0f,0.0f,0.0f,alpha); }	//!< Returns a black color.
-	CY_NODISCARD static ColorA White( float alpha=1.0f ) { return ColorA(1.0f,1.0f,1.0f,alpha); }	//!< Returns a white color.
+	CY_NODISCARD static Color4<T> Black( T alpha=1 ) { return Color4<T>(0,0,0,alpha); }	//!< Returns a black color.
+	CY_NODISCARD static Color4<T> White( T alpha=1 ) { return Color4<T>(1,1,1,alpha); }	//!< Returns a white color.
 };
+
+//-------------------------------------------------------------------------------
+
+typedef Color4<float> ColorA;
 
 //-------------------------------------------------------------------------------
 
@@ -253,13 +275,13 @@ public:
 	Color24() CY_CLASS_FUNCTION_DEFAULT
 	Color24( Color24 const &c ) : r(c.r), g(c.g), b(c.b) {}
 	explicit Color24( uint8_t _r, uint8_t _g, uint8_t _b ) : r(_r), g(_g), b(_b) {}
-	explicit Color24( Color   const &c ) { r=FloatToByte(c.r); g=FloatToByte(c.g); b=FloatToByte(c.b); }
-	explicit Color24( ColorA  const &c ) { r=FloatToByte(c.r); g=FloatToByte(c.g); b=FloatToByte(c.b); }
 	explicit Color24( Color32 const &c );
+	template <typename T> explicit Color24( Color3<T> const &c ) { r=ToByte(c.r); g=ToByte(c.g); b=ToByte(c.b); }
+	template <typename T> explicit Color24( Color4<T> const &c ) { r=ToByte(c.r); g=ToByte(c.g); b=ToByte(c.b); }
 
 	//!@name Conversion methods
 	CY_NODISCARD Color  ToColor () const { return Color (r/255.0f,g/255.0f,b/255.0f); }
-	CY_NODISCARD ColorA ToColorA() const { return ColorA(r/255.0f,g/255.0f,b/255.0f,1.0f); }
+	CY_NODISCARD ColorA ToColorA() const { return ColorA(r/255.0f,g/255.0f,b/255.0f,1); }
 
 	//!@name Set & Get value methods
 	void SetBlack() { r=  0; g=  0; b=  0; }									//!< Sets r, g, and b components as zero.
@@ -282,9 +304,13 @@ public:
 	void ClampMin( uint8_t limitMin=  0 ) { r=cy::Max(r,limitMin); g=cy::Max(g,limitMin); b=cy::Max(b,limitMin); }
 	void ClampMax( uint8_t limitMax=255 ) { r=cy::Min(r,limitMax); g=cy::Min(g,limitMax); b=cy::Min(b,limitMax); }
 
-	//!@name Test operators
-	CY_NODISCARD bool operator == ( Color24 const &c ) const { return ( (c.r==r) && (c.g==g) && (c.b==b) ); }
-	CY_NODISCARD bool operator != ( Color24 const &c ) const { return ( (c.r!=r) || (c.g!=g) || (c.b!=b) ); }
+	//!@name Comparison operators
+	CY_NODISCARD bool operator == ( Color24 const &c ) const { return ( (r==c.r) && (g==c.g) && (b==c.b) ); }
+	CY_NODISCARD bool operator != ( Color24 const &c ) const { return ( (r!=c.r) || (g!=c.g) || (b!=c.b) ); }
+	CY_NODISCARD bool operator <  ( Color24 const &c ) const { return ( (r< c.r) && (g< c.g) && (b< c.b) ); }
+	CY_NODISCARD bool operator <= ( Color24 const &c ) const { return ( (r<=c.r) && (g<=c.g) && (b<=c.b) ); }
+	CY_NODISCARD bool operator >  ( Color24 const &c ) const { return ( (r> c.r) && (g> c.g) && (b> c.b) ); }
+	CY_NODISCARD bool operator >= ( Color24 const &c ) const { return ( (r>=c.r) && (g>=c.g) && (b>=c.b) ); }
 
 	//!@name Access operators
 	CY_NODISCARD uint8_t& operator [] ( int i )       { return (&r)[i]; }
@@ -295,7 +321,7 @@ public:
 	CY_NODISCARD static Color24 White() { return Color24(255,255,255); }	//!< Returns a white color.
 
 protected:
-	CY_NODISCARD static uint8_t FloatToByte(float r) { return ClampInt(int(r*255+0.5f)); }
+	template <typename T> CY_NODISCARD static uint8_t ToByte (T r) { return ClampInt(int(r*255+T(0.5))); }
 	CY_NODISCARD static uint8_t ClampInt(int v) { return v<0 ? 0 : (v>255 ? 255 : static_cast<uint8_t>(v)); }
 };
 
@@ -314,9 +340,9 @@ public:
 	Color32() CY_CLASS_FUNCTION_DEFAULT
 	Color32( Color32 const &c ) : r(c.r), g(c.g), b(c.b), a(c.a) {}
 	explicit Color32( uint8_t _r, uint8_t _g, uint8_t _b, uint8_t _a=255 ) : r(_r), g(_g), b(_b), a(_a) {}
-	explicit Color32( Color   const &c, float _a=1.0f ) { r=FloatToByte(c.r); g=FloatToByte(c.g); b=FloatToByte(c.b); a=FloatToByte( _a); }
-	explicit Color32( ColorA  const &c )                { r=FloatToByte(c.r); g=FloatToByte(c.g); b=FloatToByte(c.b); a=FloatToByte(c.a); }
 	explicit Color32( Color24 const &c, uint8_t _a=255 ) : r(c.r), g(c.g), b(c.b), a(_a) {}
+	template <typename T> explicit Color32( Color3<T> const &c, T _a=1 ) { r=ToByte(c.r); g=ToByte(c.g); b=ToByte(c.b); }
+	template <typename T> explicit Color32( Color4<T> const &c )         { r=ToByte(c.r); g=ToByte(c.g); b=ToByte(c.b); }
 
 	//!@name Conversion methods
 	CY_NODISCARD Color  ToColor () const { return Color (r/255.0f,g/255.0f,b/255.0f); }
@@ -343,9 +369,13 @@ public:
 	void ClampMin( uint8_t limitMin=  0 ) { r=cy::Max(r,limitMin); g=cy::Max(g,limitMin); b=cy::Max(b,limitMin); a=cy::Max(a,limitMin); }
 	void ClampMax( uint8_t limitMax=255 ) { r=cy::Min(r,limitMax); g=cy::Min(g,limitMax); b=cy::Min(b,limitMax); a=cy::Min(a,limitMax); }
 
-	//!@name Test operators
-	CY_NODISCARD bool operator == ( Color32 const &c ) const { return ( (c.r==r) && (c.g==g) && (c.b==b) && (c.a==a) ); }
-	CY_NODISCARD bool operator != ( Color32 const &c ) const { return ( (c.r!=r) || (c.g!=g) || (c.b!=b) || (c.a!=a) ); }
+	//!@name Comparison operators
+	CY_NODISCARD bool operator == ( Color32 const &c ) const { return ( (r==c.r) && (g==c.g) && (b==c.b) && (a==c.a) ); }
+	CY_NODISCARD bool operator != ( Color32 const &c ) const { return ( (r!=c.r) || (g!=c.g) || (b!=c.b) || (a!=c.a) ); }
+	CY_NODISCARD bool operator <  ( Color32 const &c ) const { return ( (r< c.r) && (g< c.g) && (b< c.b) && (a< c.a) ); }
+	CY_NODISCARD bool operator <= ( Color32 const &c ) const { return ( (r<=c.r) && (g<=c.g) && (b<=c.b) && (a<=c.a) ); }
+	CY_NODISCARD bool operator >  ( Color32 const &c ) const { return ( (r> c.r) && (g> c.g) && (b> c.b) && (a> c.a) ); }
+	CY_NODISCARD bool operator >= ( Color32 const &c ) const { return ( (r>=c.r) && (g>=c.g) && (b>=c.b) && (a>=c.a) ); }
 
 	//!@name Access operators
 	CY_NODISCARD uint8_t& operator [] ( int i )       { return (&r)[i]; }
@@ -356,7 +386,7 @@ public:
 	CY_NODISCARD static Color32 White( uint8_t alpha=255 ) { return Color32(255,255,255,alpha); }	//!< Returns a white color.
 
 protected:
-	CY_NODISCARD static uint8_t FloatToByte(float r) { return ClampInt(int(r*255+0.5f)); }
+	template <typename T> CY_NODISCARD static uint8_t ToByte (T r) { return ClampInt(int(r*255+T(0.5))); }
 	CY_NODISCARD static uint8_t ClampInt(int v) { return v<0 ? 0 : (v>255 ? 255 : static_cast<uint8_t>(v)); }
 };
 
@@ -364,39 +394,51 @@ protected:
 
 //!@name Common math functions
 
-inline Color  Abs  ( Color  const &c ) { return c.GetApplied(std::abs  ); }	//!< Returns a color with abs applied to all components.
-inline Color  Exp  ( Color  const &c ) { return c.GetApplied(std::exp  ); }	//!< Returns a color with exponential applied to all components.
-inline Color  Exp2 ( Color  const &c ) { return c.GetApplied(std::exp2 ); }	//!< Returns a color with base-2 exponential applied to all components.
-inline Color  Log  ( Color  const &c ) { return c.GetApplied(std::log  ); }	//!< Returns a color with natural logarithm applied to all components.
-inline Color  Log2 ( Color  const &c ) { return c.GetApplied(std::log2 ); }	//!< Returns a color with base-2 logarithm applied to all components.
-inline Color  Log10( Color  const &c ) { return c.GetApplied(std::log10); }	//!< Returns a color with base-10 logarithm applied to all components.
-inline Color  Sqrt ( Color  const &c ) { return c.GetApplied( cy::Sqrt ); }	//!< Returns a color with square root applied to all components.
-inline Color  Pow  ( Color  const &c, float exponent ) { return c.GetApplied([&exponent](float v){ return std::pow(v,exponent); }); }	//!< Returns a color with square root applied to all components.
+template <typename T> inline Color3<T> Abs  ( Color3<T> const &c ) { return c.GetApplied(std::abs   ); }	//!< Returns a color with abs applied to all components.
+template <typename T> inline Color3<T> Exp  ( Color3<T> const &c ) { return c.GetApplied(std::exp   ); }	//!< Returns a color with exponential applied to all components.
+template <typename T> inline Color3<T> Exp2 ( Color3<T> const &c ) { return c.GetApplied(std::exp2  ); }	//!< Returns a color with base-2 exponential applied to all components.
+template <typename T> inline Color3<T> Log  ( Color3<T> const &c ) { return c.GetApplied(std::log   ); }	//!< Returns a color with natural logarithm applied to all components.
+template <typename T> inline Color3<T> Log2 ( Color3<T> const &c ) { return c.GetApplied(std::log2  ); }	//!< Returns a color with base-2 logarithm applied to all components.
+template <typename T> inline Color3<T> Log10( Color3<T> const &c ) { return c.GetApplied(std::log10 ); }	//!< Returns a color with base-10 logarithm applied to all components.
+template <typename T> inline Color3<T> Sqrt ( Color3<T> const &c ) { return c.GetApplied(cy::Sqrt<T>); }	//!< Returns a color with square root applied to all components.
+template <typename T> inline Color3<T> Pow  ( Color3<T> const &c, T exponent ) { return c.GetApplied([&exponent](T v){ return (T)std::pow(v,exponent); }); }	//!< Returns a color with square root applied to all components.
 
-inline ColorA Abs  ( ColorA const &c ) { return c.GetApplied(std::abs  ); }	//!< Returns a color with abs applied to all components.
-inline ColorA Exp  ( ColorA const &c ) { return c.GetApplied(std::exp  ); }	//!< Returns a color with exponential applied to all components.
-inline ColorA Exp2 ( ColorA const &c ) { return c.GetApplied(std::exp2 ); }	//!< Returns a color with base-2 exponential applied to all components.
-inline ColorA Log  ( ColorA const &c ) { return c.GetApplied(std::log  ); }	//!< Returns a color with natural logarithm applied to all components.
-inline ColorA Log2 ( ColorA const &c ) { return c.GetApplied(std::log2 ); }	//!< Returns a color with base-2 logarithm applied to all components.
-inline ColorA Log10( ColorA const &c ) { return c.GetApplied(std::log10); }	//!< Returns a color with base-10 logarithm applied to all components.
-inline ColorA Sqrt ( ColorA const &c ) { return c.GetApplied( cy::Sqrt ); }	//!< Returns a color with square root applied to all components.
-inline ColorA Pow  ( ColorA const &c, float exponent ) { return c.GetApplied([&exponent](float v){ return std::pow(v,exponent); }); }	//!< Returns a color with square root applied to all components.
+template <typename T> inline Color4<T> Abs  ( Color4<T> const &c ) { return c.GetApplied(std::abs   ); }	//!< Returns a color with abs applied to all components.
+template <typename T> inline Color4<T> Exp  ( Color4<T> const &c ) { return c.GetApplied(std::exp   ); }	//!< Returns a color with exponential applied to all components.
+template <typename T> inline Color4<T> Exp2 ( Color4<T> const &c ) { return c.GetApplied(std::exp2  ); }	//!< Returns a color with base-2 exponential applied to all components.
+template <typename T> inline Color4<T> Log  ( Color4<T> const &c ) { return c.GetApplied(std::log   ); }	//!< Returns a color with natural logarithm applied to all components.
+template <typename T> inline Color4<T> Log2 ( Color4<T> const &c ) { return c.GetApplied(std::log2  ); }	//!< Returns a color with base-2 logarithm applied to all components.
+template <typename T> inline Color4<T> Log10( Color4<T> const &c ) { return c.GetApplied(std::log10 ); }	//!< Returns a color with base-10 logarithm applied to all components.
+template <typename T> inline Color4<T> Sqrt ( Color4<T> const &c ) { return c.GetApplied(cy::Sqrt<T>); }	//!< Returns a color with square root applied to all components.
+template <typename T> inline Color4<T> Pow  ( Color4<T> const &c, T exponent ) { return c.GetApplied([&exponent](T v){ return (T)std::pow(v,exponent); }); }	//!< Returns a color with square root applied to all components.
 
 //-------------------------------------------------------------------------------
 
-inline Color  ::Color  ( ColorA  const &c ) : r(c.r), g(c.g), b(c.b) {}
-inline Color  ::Color  ( Color24 const &c ) : Color( c.ToColor() ) {}
-inline Color  ::Color  ( Color32 const &c ) : Color( c.ToColor() ) {}
-inline ColorA ::ColorA ( Color24 const &c, float alpha ) { Color rgb = c.ToColor(); r = rgb.r; g = rgb.g; b = rgb.b; a = alpha; }
-inline ColorA ::ColorA ( Color32 const &c ) : ColorA( c.ToColorA() ) {}
+template <typename T> inline Color3<T>::Color3( Color4<T> const &c ) : r(c.r), g(c.g), b(c.b) {}
+template <typename T> inline Color3<T>::Color3( Color24   const &c ) : Color3<T>( c.ToColor() ) {}
+template <typename T> inline Color3<T>::Color3( Color32   const &c ) : Color3<T>( c.ToColor() ) {}
+template <typename T> inline Color4<T>::Color4( Color24   const &c, T alpha ) { Color3<T> rgb=c.ToColor(); r=rgb.r; g=rgb.g; b=rgb.b; a=alpha; }
+template <typename T> inline Color4<T>::Color4( Color32   const &c ) : Color4<T>( c.ToColorA() ) {}
 inline Color24::Color24( Color32 const &c ) : r(c.r), g(c.g), b(c.b) {}
+
+//-------------------------------------------------------------------------------
+
+typedef Color3<float>  Color3f;	//!< RGB color class with 3 float components
+typedef Color4<float>  Color4f;	//!< RGBA color class with 4 float components
+
+typedef Color3<double> Color3d;	//!< RGB color class with 3 double components
+typedef Color4<double> Color4d;	//!< RGBA color class with 4 double components
 
 //-------------------------------------------------------------------------------
 } // namespace cy
 //-------------------------------------------------------------------------------
 
 typedef cy::Color   cyColor;	//!< RGB color class with 3 float components
+typedef cy::Color3f cyColor3f;	//!< RGB color class with 3 float components
+typedef cy::Color3d cyColor3d;	//!< RGB color class with 3 double components
 typedef cy::ColorA  cyColorA;	//!< RGBA color class with 4 float components
+typedef cy::Color4f cyColor4f;	//!< RGBA color class with 4 float components
+typedef cy::Color4d cyColor4d;	//!< RGBA color class with 4 double components
 typedef cy::Color24 cyColor24;	//!< 24-bit RGB color class with 3 unsigned byte components
 typedef cy::Color32 cyColor32;	//!< 32-bit RGBA color class with 4 unsigned byte components
 

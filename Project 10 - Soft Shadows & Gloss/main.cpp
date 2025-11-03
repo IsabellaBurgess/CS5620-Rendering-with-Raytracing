@@ -48,12 +48,14 @@ Matrix4f wsTransMatrix;
 
 float maxT = BIGFLOAT;
 
-int camOffset = 1;
-int bounceNum = 3;
+int camOffset = 1;  
+int bounceNum =3;
 
 const int numThreads = 20 ;
-int minSampleCount = 16;
-int maxSampleCount = 64;
+int minSampleCount = 8;
+int maxSampleCount = 32;
+float minShadowSamples = 4;
+float maxShadowSamples = 64;
 float errorThreshold = 0.01;
 // const int numThreads = thread::hardware_concurrency();
 
@@ -64,7 +66,7 @@ RNG rng;
 
 int main (int argc, char** argv){
 
-    sceneRenderer.LoadScene("sceneFiles/testScene.xml");
+    sceneRenderer.LoadScene("sceneFiles/softShadowsTest.xml");
     ShowViewport(&sceneRenderer, false);
     return 0;
 }

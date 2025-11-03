@@ -112,6 +112,8 @@ public:
 	CY_NODISCARD Vec  Sqrt         () const { Vec v; for ( int i=0; i<N; ++i ) v.elem[i] = cy::Sqrt(elem[i]); return v; }									//!< Returns the square root of the vector.
 	CY_NODISCARD Vec  Abs          () const { Vec v; for ( int i=0; i<N; ++i ) v.elem[i] = std::abs(elem[i]); return v; }									//!< Returns a vector containing the absolute values of all components.
 
+	template <typename V> CY_NODISCARD V Mix( V const v[N] ) const { V r = v[0]*elem[0]; for ( int i=1; i<N; ++i ) r += v[i]*elem[i]; return r; }	//!< Returns the weighted sum of N values, using the components of the vector as weights.
+
 	//!@name Limit methods
 	void Clamp   ( T minLimit, T maxLimit ) { ClampMin(minLimit); ClampMax(maxLimit); }		//!< Ensures that all components of the vector are within the given limits.
 	void ClampMin( T v ) { for ( int i=0; i<N; ++i ) elem[i] = (elem[i]<v) ? v : elem[i]; }	//!< Ensures that all components of the vector are greater than or equal to the given limit.
@@ -212,6 +214,9 @@ public:
 	CY_NODISCARD Vec2 SortAsc         () const { Vec2 v; Sort2<true >( v.x, v.y, x, y ); return v; }	//!< Returns a vector with components sorted in ascending order.
 	CY_NODISCARD Vec2 SortDesc        () const { Vec2 v; Sort2<false>( v.x, v.y, x, y ); return v; }	//!< Returns a vector with components sorted in descending order.
 	CY_NODISCARD Vec2 GetPerpendicular() const { return Vec2(-y,x); }									//!< Returns a perpendicular vector (rotated by 90 degrees in counter clockwise direction).
+
+	template <typename V> CY_NODISCARD V Mix( V const v[2] ) const { return v[0]*x + v[1]*y; }	//!< Returns the weighted sum of two values, using the components of the vector as weights.
+	template <typename V> CY_NODISCARD V Mix( V const &a, V const &b ) const { return a*x + b*y; }	//!< Returns the weighted sum of two values, using the components of the vector as weights.
 
 	//!@name Limit methods
 	void Clamp   ( T minLimit, T maxLimit ) { ClampMin(minLimit); ClampMax(maxLimit); }	//!< Ensures that all components of the vector are within the given limits.
@@ -337,6 +342,9 @@ public:
 			v1.Set( 1 - x*x*a, -x, b );
 		}
 	}
+
+	template <typename V> CY_NODISCARD V Mix( V const v[3] ) const { return v[0]*x + v[1]*y + v[2]*z; }	//!< Returns the weighted sum of three values, using the components of the vector as weights.
+	template <typename V> CY_NODISCARD V Mix( V const &a, V const &b, V const &c ) const { return a*x + b*y + c*z; }	//!< Returns the weighted sum of three values, using the components of the vector as weights.
 
 	//!@name Limit methods
 	void Clamp   ( T minLimit, T maxLimit ) { ClampMin(minLimit); ClampMax(maxLimit); }	//!< Ensures that all components of the vector are within the given limits.
@@ -482,6 +490,9 @@ public:
 	CY_NODISCARD Vec4 Abs          () const { return Vec4(std::abs(x),std::abs(y),std::abs(z),std::abs(w)); }	//!< Returns a vector containing the absolute values of all components.
 	CY_NODISCARD Vec4 SortAsc      () const { Vec4 v; Sort4<true >(v.x,v.y,v.z,v.w,x,y,z,w); return v; }		//!< Returns a vector with components sorted in ascending order.
 	CY_NODISCARD Vec4 SortDesc     () const { Vec4 v; Sort4<false>(v.x,v.y,v.z,v.w,x,y,z,w); return v; }		//!< Returns a vector with components sorted in descending order.
+
+	template <typename V> CY_NODISCARD V Mix( V const v[4] ) const { return v[0]*x + v[1]*y + v[2]*z + v[3]*w; }	//!< Returns the weighted sum of four values, using the components of the vector as weights.
+	template <typename V> CY_NODISCARD V Mix( V const &a, V const &b, V const &c, V const &d ) const { return a*x + b*y + c*z + d*w; }	//!< Returns the weighted sum of four values, using the components of the vector as weights.
 
 	//!@name Limit methods
 	void Clamp   ( T minLimit, T maxLimit ) { ClampMin(minLimit); ClampMax(maxLimit); }		//!< Ensures that all components of the vector are within the given limits.

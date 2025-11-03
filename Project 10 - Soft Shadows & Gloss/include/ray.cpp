@@ -41,6 +41,7 @@ using namespace std;
 
 extern calculateRay rayCalculation; 
 extern RayTracer sceneRenderer;
+extern RNG rng;
 
 
 Color calculateRay::shootRay(int x, int y, Ray const &ray, HitInfo &hInfo, int sampleCount){
@@ -55,9 +56,13 @@ Color calculateRay::shootRay(int x, int y, Ray const &ray, HitInfo &hInfo, int s
     {
         // printf("true\n");
             // printf("hit node: %s\n", hitInf.node->GetName());
+        if(hInfo.light == true){
+            
+            return Color(1, 1, 1);
+        }  
         const Material *currentMat = hInfo.node->GetMaterial();
 
-        Shadows shadeInf = Shadows(lightList, env);
+        Shadows shadeInf = Shadows(lightList, env, rng);
         shadeInf.SetPixel(x, y);
 
         shadeInf.SetHit(ray, hInfo);
@@ -86,6 +91,12 @@ bool calculateRay::TraceRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
 {
     bool hitTracker = rayCalculation.treeTraversal(&rootNode, ray, hInfo);
     
+    for(int i = 0; i < lightList.size(); i++){
+        if(lightList[i]->IsRenderable()){
+            (lightList[i]->IntersectRay(ray, hInfo, hitSide));
+                // hitTracker = true;
+        }
+    }
     return hitTracker;
 }
 
@@ -126,7 +137,8 @@ bool calculateRay::treeTraversal( Node *node, Ray ray, HitInfo &hInfo)
         }
     }
     return hitTracker;
- }
+}
+
 bool calculateRay::TraceShadowRay(Ray const &ray, float t_max, int hitSide) const{
     HitInfo hitInf = HitInfo();
     hitInf.Init();

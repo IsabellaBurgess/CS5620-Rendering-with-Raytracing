@@ -73,7 +73,7 @@ bool Shadows::shadowRay(Node *node, Ray ray, HitInfo &hInfo){
     return false;
 }
 
-Color Shadows::TraceSecondaryRay( Ray const &ray, float &dist ) const
+Color Shadows::TraceSecondaryRay( Ray const &ray, float &dist, bool reflect) const
 {
     HitInfo newHit;
     newHit.Init();
@@ -81,14 +81,20 @@ Color Shadows::TraceSecondaryRay( Ray const &ray, float &dist ) const
 
     bool hit = rayCalculation.TraceRay(ray, newHit, newHit.front);
     
+
+        if(hInfo.light == true){
+            
+            return Color(1, 1, 1);
+        }
     
     if(hit == true && hInfo.node->GetNodeObj() != nullptr)
     {
         Shadows shade = *this;
         shade.SetHit(ray, newHit);
-        shade.IncrementBounce();
+        shade.bounce++;
 
         dist = newHit.z;
+
         newColor = newHit.node->GetMaterial()->Shade(shade);
     }
     
@@ -100,7 +106,7 @@ Color Shadows::TraceSecondaryRay( Ray const &ray, float &dist ) const
 
 bool Shadows::CanBounce() const
 {
-    if(bounceS >= bounceNum){
+    if(bounce >= bounceNum){
         return false;
     }
 
