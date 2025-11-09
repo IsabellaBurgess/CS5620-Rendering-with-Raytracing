@@ -54,9 +54,9 @@ int bounceNum =3;
 const int numThreads = 20 ;
 
 int minSampleCount = 8;
-int maxSampleCount = 64;
+int maxSampleCount = 32;
 float minShadowSamples = 4;
-float maxShadowSamples = 64;
+float maxShadowSamples = 8;
 float errorThreshold = 0.01;
 // const int numThreads = thread::hardware_concurrency();
 
@@ -67,7 +67,7 @@ RNG rng;
 
 int main (int argc, char** argv){
 
-    sceneRenderer.LoadScene("sceneFiles/softShadowsTest.xml");
+    sceneRenderer.LoadScene("sceneFiles/boxScene.xml");
     ShowViewport(&sceneRenderer, false);
     return 0;
 }
@@ -181,7 +181,13 @@ void RayTracer::BeginRender(){
 
                 int numPixel = y*imageWidth + x;
 
-                pixels[numPixel] = (Color24) (S1/finalSampleCount);
+                Color finalColor =  (S1/finalSampleCount);
+                
+
+                // if(cam.sRGB == true){
+                //     finalColor.sRGB2Linear();
+                // }
+                pixels[numPixel] = (Color24) finalColor;
                 zBuf[numPixel] = hitInf.z;
                 sampleCount[numPixel] = finalSampleCount;
                 

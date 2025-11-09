@@ -108,12 +108,12 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
             refraction = shadeInfo.TraceSecondaryRay(refractRay, dist);
 
             
-            // if(!shadeInfo.IsFront()){
-            //     refraction.r = refraction.r*exp(-absorbValue.r*dist);
-            //     refraction.g = refraction.g*exp(-absorbValue.g*dist);
-            //     refraction.b = refraction.b*exp(-absorbValue.b*dist);
+            if(!shadeInfo.IsFront()){
+                refraction.r = refraction.r*exp(-absorbValue.r*dist);
+                refraction.g = refraction.g*exp(-absorbValue.g*dist);
+                refraction.b = refraction.b*exp(-absorbValue.b*dist);
 
-            // }
+            }
 
             //change refraction to the current texture point
             refraction = refraction * refractValue;
