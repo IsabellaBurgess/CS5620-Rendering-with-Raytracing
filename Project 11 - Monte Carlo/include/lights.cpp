@@ -34,8 +34,8 @@ Color PointLight::Illuminate( ShadeInfo const &sInfo, Vec3f &dir ) const{
     float shadowValue = 0;
 
     int hitsFound = 0;
-    bool minSamples = false;
-
+    int totalSamples = maxShadowSamples;
+    Vec3f distance = Vec3f(1, 1, 1);
 
     for(int i = 0; i < maxShadowSamples; i++)
     {
@@ -52,7 +52,6 @@ Color PointLight::Illuminate( ShadeInfo const &sInfo, Vec3f &dir ) const{
         if(ranAng > 1){
             ranAng = ranAng - 1;
         }
-
 
         if(ranX > 1){
             ranX = ranX - 1;
@@ -82,22 +81,25 @@ Color PointLight::Illuminate( ShadeInfo const &sInfo, Vec3f &dir ) const{
         }
         shadowValue += currentShadowValue;
 
-        if(i == minShadowSamples && hitsFound == minShadowSamples){
-            minSamples = true;
-            break;
+        if(i == minShadowSamples ){
+            if(hitsFound == minShadowSamples || hitsFound == 0){
+                totalSamples = minShadowSamples;        
+      
+                break;
+            }
         }
 
+        
     }
-    
-    if(minSamples)
-    {
-        return intensity * (float) ((float) shadowValue/ (float) minShadowSamples); 
 
-    }
-    else{
-        return intensity * (float) ((float) shadowValue/ (float) maxShadowSamples); 
+    if(attenuation > 0){
+        distance = (position - sInfo.P());
 
-    }
+        return (intensity * (float) ((float) shadowValue/ (float) totalSamples))/distance.LengthSquared(); 
+    }  
+
+    return (intensity * (float) ((float) shadowValue/ (float) totalSamples)); 
+
 }
 
 bool PointLight::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide) const{
@@ -118,30 +120,7 @@ bool PointLight::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide) cons
     // }
     // printf("delta = %f\n", delta);
     if (delta >= 0)
-    {    
-        // if (t1 <= 0.001 && t2 > 0.001){
-        //     hInfo.front = false;
-
-        //     if(t2 < hInfo.z ){
-
-        //         hInfo.z = t2;
-        //         hInfo.p = ray.p + ray.dir*t2;
-
-        //         // hInfo.N = -Normalize(hInfo.p);
-
-
-        //         // float u = (atan2(hInfo.p.y, hInfo.p.x)/(2*Pi<float>())) + (1/2);
-        //         // float v = (asin(hInfo.p.z)/(Pi<float>())) + (1/2);
-        //         // hInfo.uvw = Vec3f(u, v, 0);
-
-        //         hInfo.light = true;
-        //         // printf("face hit %d", hInfo.front);
-        //         return true;
-        //     }
-
-        // }
-
-
+    {   
         if (t1 > 0.001)
         {
             hInfo.front = true;

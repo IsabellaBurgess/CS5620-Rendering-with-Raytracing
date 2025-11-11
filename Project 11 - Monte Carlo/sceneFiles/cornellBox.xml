@@ -75,6 +75,9 @@
     </material>
  
     <!-- Lights -->
+    <!-- <light type="ambient" name="ambientLight">
+      <intensity value="0.1"/>
+    </light> -->
     <light type="point" name="pointLight">
       <intensity value="500"/>
       <position x="0" y="0" z="18"/>

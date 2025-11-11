@@ -17,6 +17,9 @@ extern Camera cam;
 
 extern calculateRay rayCalculation; 
 extern RNG rng;
+extern int montCarloBounceNum; 
+extern int montCarloSamples;
+
  
 
 
@@ -44,11 +47,12 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
     
     Color reflectValue = this->reflection.GetValue();
     Color refractValue = this->refraction.GetValue();
-
+    
     Color reflection = Color(0, 0, 0);
     Color refraction = Color(0, 0, 0);
 
-  if(refractValue != Color(0, 0, 0) && shadeInfo.CanBounce()){
+    if(refractValue != Color(0, 0, 0) && shadeInfo.CanBounce()){
+
         // printf("glass!\n");
         float ior = this->IOR();
         float eta = 1/ior;
@@ -94,7 +98,7 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
 
             refractDir = -eta * camera - (sqrt(refractCosThetaTSquared)- eta*(camera % worldH))*worldH;
                 // printf("front hit 1\n");
-
+ 
             Ray refractRay; 
             refractRay.dir = refractDir ;
 
@@ -154,10 +158,7 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
         Ray reflectRay;
         reflectRay.dir = reflectDir;
 
-        reflectRay.p = hitPos + (reflectRay.dir * 0.01);
-
-        HitInfo reflectHit = HitInfo();
-        reflectHit.Init();
+        reflectRay.p = hitPos;
 
         //create a shootSecondaryRay method. pass in the bounce number, subtract 1 each time. 
         //thats it thats the only difference. check that bounce number is > 0 
@@ -173,12 +174,47 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
 
         Color intensity = currentLight->Illuminate(shadeInfo, lightDir);
 
-        if(currentLight->IsAmbient()){
-            ambientColor += intensity * baseColor;
+        if(shadeInfo.CurrentBounce() < montCarloBounceNum){
+            for(int j = 0; j < montCarloSamples; j++){
+                float phiOffset = Halton(shadeInfo.CurrentPixelSample(), 2) + rng.RandomFloat();
+                float thetaOffset = Halton(shadeInfo.CurrentPixelSample(), 3) + rng.RandomFloat();
+
+                Vec3f u = Vec3f(0, 0, 0); 
+                Vec3f v = Vec3f(0, 0, 0);
+
+                norm.GetOrthonormals(u, v);
+
+                if(phiOffset > 1.0){
+                    phiOffset = phiOffset - 1;
+                }
+
+                if(thetaOffset > 1.0){
+                    thetaOffset = thetaOffset - 1.0;
+                }
+
+                float phi = (2.0*Pi<float>() * phiOffset);
+                float cosTheta =  Sqrt(thetaOffset);
+
+                float sinTheta = sqrt(1.0 - (cosTheta * cosTheta));
+
+                Vec3f localDir = Vec3f(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);  
+                Vec3f worldDir = (localDir.x * u) + (localDir.y * v) + (localDir.z * norm);
+
+                Ray montCarloRay = Ray(hitPos, worldDir);
+
+                float dist = BIGFLOAT;
+
+                ambientColor += (shadeInfo.TraceSecondaryRay(montCarloRay, dist))*baseColor * cosTheta * 2.0 ; 
+            }
+
+            ambientColor = (ambientColor/montCarloSamples);
         }
+        // if(currentLight->IsAmbient()){
+        //     ambientColor += intensity * baseColor;
+        // }
 
 
-        else{
+        
             // printf("Current light is %s\n", currentLight->GetName());
 
             lightDir = Normalize(lightDir);
@@ -192,17 +228,20 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
             float cosPhi = Max((n % h), 0.0f);
 
             float cosTheta = Max((n % lightDir), 0.0f);
+
+            
                 
-            Color specularLight =  reflectColor * pow(cosPhi, gloss);
-            Color difuseLight = (cosTheta * baseColor);
+            Color specularLight =  (reflectColor * pow(cosPhi, gloss)) * ((gloss+2)/(8*Pi<float>()));
+            Color difuseLight = (cosTheta * baseColor) * (1/Pi<float>());
             blinnColor += (intensity * (difuseLight + specularLight));
 
 
-        }
+        
     }
     // printf("Blinn color = [%f, %f, %f]\n", blinnColor.r, blinnColor.g, blinnColor.b);
 
-    return blinnColor + ambientColor + reflection + refraction;
+    return blinnColor + ambientColor + reflection + refraction + emission.GetValue();
+    // return ambientColor + emission.GetValue();
 }
 
 Color MtlPhong::Shade(ShadeInfo const &shadeInfo ) const

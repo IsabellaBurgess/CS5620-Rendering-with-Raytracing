@@ -11,6 +11,7 @@
 #include "include/cy/cyMatrix.h"
 #include "include/cy/cyVector.h"
 #include "include/cy/cyTriMesh.h"
+#include "include/cy/cyColor.h"
 
 #include "include/headerFiles/main.h"
 
@@ -49,14 +50,18 @@ Matrix4f wsTransMatrix;
 float maxT = BIGFLOAT;
 
 int camOffset = 1;  
-int bounceNum =3;
+int bounceNum = 2;
+int montCarloBounceNum = 2; 
+
 
 const int numThreads = 20 ;
 
-int minSampleCount = 8;
-int maxSampleCount = 32;
+int minSampleCount = 4;
+int maxSampleCount = 8;
 float minShadowSamples = 4;
-float maxShadowSamples = 8;
+float maxShadowSamples = 4;
+
+int montCarloSamples = 4;
 float errorThreshold = 0.01;
 // const int numThreads = thread::hardware_concurrency();
 
@@ -67,7 +72,7 @@ RNG rng;
 
 int main (int argc, char** argv){
 
-    sceneRenderer.LoadScene("sceneFiles/boxScene.xml");
+    sceneRenderer.LoadScene("sceneFiles/cornellBox.xml");
     ShowViewport(&sceneRenderer, false);
     return 0;
 }
@@ -181,12 +186,13 @@ void RayTracer::BeginRender(){
 
                 int numPixel = y*imageWidth + x;
 
-                Color finalColor =  (S1/finalSampleCount);
+                Color finalColor =  (S1/finalSampleCount).Linear2sRGB();
                 
 
                 // if(cam.sRGB == true){
-                //     finalColor.sRGB2Linear();
+                //     finalColor = finalColor.sRGB2Linear();
                 // }
+
                 pixels[numPixel] = (Color24) finalColor;
                 zBuf[numPixel] = hitInf.z;
                 sampleCount[numPixel] = finalSampleCount;
@@ -207,7 +213,7 @@ void RayTracer::BeginRender(){
         
         sceneImage.ComputeZBufferImage();
         sceneImage.ComputeSampleCountImage();
-        sceneImage.SaveSampleCountImage("sampleImage.png");
+        // sceneImage.SaveSampleCountImage("sampleImage.png");
         sceneImage.SaveImage("renderedImage.png");
         
     });
