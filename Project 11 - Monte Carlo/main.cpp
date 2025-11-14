@@ -48,22 +48,21 @@ float imageHeight;
 Matrix4f wsTransMatrix;
 
 float maxT = BIGFLOAT;
+const int numThreads = 20 ;
 
 int camOffset = 1;  
 int bounceNum = 2;
 int montCarloBounceNum = 2; 
 
 
-const int numThreads = 20 ;
 
 int minSampleCount = 4;
 int maxSampleCount = 8;
 float minShadowSamples = 4;
-float maxShadowSamples = 4;
+float maxShadowSamples = 8;
 
-int montCarloSamples = 4;
+int montCarloSamples = 8;
 float errorThreshold = 0.01;
-// const int numThreads = thread::hardware_concurrency();
 
 calculateRay rayCalculation; 
 RayTracer sceneRenderer;

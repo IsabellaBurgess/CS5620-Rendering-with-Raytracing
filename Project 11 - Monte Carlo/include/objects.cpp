@@ -16,6 +16,9 @@ Vec3f vecMax(const Vec3f& vec1, const Vec3f& vec2);
 
 BVHTriMesh bvhTree;
 
+#define FAST_MIN(a, b) ((a) < (b) ? (a) : (b))
+#define FAST_MAX(a, b) ((a) > (b) ? (a) : (b))
+
 
 bool Sphere::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide ) const{
     //Quadratic equation info
@@ -359,26 +362,51 @@ bool TriObj::TraceBVHNode( Ray const &ray, HitInfo &hInfo, int hitSide, unsigned
 
 //Method implemented with help from Devin Fink
 //Ray-AABB intersection 
+// bool Box::IntersectRay(Ray const &r, float t_max) const{
+//     Vec3f boxMax = pmax;
+//     Vec3f boxMin = pmin;
+
+//     Vec3f dir = r.dir;
+//     Vec3f p = r.p;
+//     auto safeInv = [](float d){
+//         return (fabs(d) > 1e-8f) ? (1.0f/d):
+//         std::numeric_limits<float>::infinity();
+//     };
+
+//     Vec3f invR = Vec3f(safeInv(dir.x), safeInv(dir.y), safeInv(dir.z));
+
+//     Vec3f tMin = vecMin(Vec3f(invR * (boxMax - p)), Vec3f(invR * (boxMin - p)));
+//     Vec3f tMax = vecMax(Vec3f(invR * (boxMax - p)), Vec3f(invR * (boxMin - p)));
+
+//     float t0 = Max(tMin.x, tMin.y, tMin.z);
+//     float t1 = Min(tMax.x, tMax.y, tMax.z);
+
+//     return t0 <= t1 && t1 >= 0.0f;
+// }
+
 bool Box::IntersectRay(Ray const &r, float t_max) const{
-    Vec3f boxMax = pmax;
-    Vec3f boxMin = pmin;
+    float invDirX = -(r.dir.x);
+    float invDirY = -(r.dir.y);
+    float invDirZ = -(r.dir.z);
 
-    Vec3f dir = r.dir;
-    Vec3f p = r.p;
-    auto safeInv = [](float d){
-        return (fabs(d) > 1e-8f) ? (1.0f/d):
-        std::numeric_limits<float>::infinity();
-    };
+    float t1 = (pmax.x - r.p.x) * invDirX;
+    float t2 = (pmin.x - r.p.x) * invDirX;
+    float t3 = (pmax.y - r.p.y) * invDirY;
+    float t4 = (pmin.y - r.p.y) * invDirY;
+    float t5 = (pmax.z - r.p.z) * invDirZ;
+    float t6 = (pmin.z - r.p.z) * invDirZ;
 
-    Vec3f invR = Vec3f(safeInv(dir.x), safeInv(dir.y), safeInv(dir.z));
+    float tminX = FAST_MIN(t1, t2);
+    float tmaxX = FAST_MAX(t1, t2);
+    float tminY = FAST_MIN(t3, t4);
+    float tmaxY = FAST_MAX(t3, t4);
+    float tminZ = FAST_MIN(t5, t6);
+    float tmaxZ = FAST_MAX(t5, t6);
 
-    Vec3f tMin = vecMin(Vec3f(invR * (boxMax - p)), Vec3f(invR * (boxMin - p)));
-    Vec3f tMax = vecMax(Vec3f(invR * (boxMax - p)), Vec3f(invR * (boxMin - p)));
+    float tmin = FAST_MAX(FAST_MAX(tminX, tminY), tminZ);
+    float tmax = FAST_MIN(FAST_MIN(tmaxX, tmaxY), tmaxZ);
 
-    float t0 = Max(tMin.x, tMin.y, tMin.z);
-    float t1 = Min(tMax.x, tMax.y, tMax.z);
-
-    return t0 <= t1 && t1 >= 0.0f;
+    return tmax >= tmin && tmax >= 0.0f;
 }
 
 Vec3f vecMin(const Vec3f& vec1, const Vec3f& vec2){

@@ -193,7 +193,7 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
                 }
 
                 float phi = (2.0*Pi<float>() * phiOffset);
-                float cosTheta =  Sqrt(thetaOffset);
+                float cosTheta =  sqrt(thetaOffset);
 
                 float sinTheta = sqrt(1.0 - (cosTheta * cosTheta));
 
@@ -204,7 +204,7 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
 
                 float dist = BIGFLOAT;
 
-                ambientColor += (shadeInfo.TraceSecondaryRay(montCarloRay, dist))*baseColor * cosTheta * 2.0 ; 
+                ambientColor += (shadeInfo.TraceSecondaryRay(montCarloRay, dist))*baseColor ; 
             }
 
             ambientColor = (ambientColor/montCarloSamples);
