@@ -8,6 +8,8 @@
 #include "cy/cyVector.h"
 #include "headerFiles/scene.h"
 #include "headerFiles/shadeInf.h"
+#include "headerFiles/photonmap.h"
+#include "headerFiles/main.h"
 
 
 using namespace cy;
@@ -16,9 +18,13 @@ extern MaterialList matList;
 extern Camera cam;
 
 extern calculateRay rayCalculation; 
+extern RayTracer sceneRenderer;
 extern RNG rng;
 extern int montCarloBounceNum; 
 extern int montCarloSamples;
+extern int photonCount;
+
+extern PhotonMap *photonMap;
 
  
 
@@ -50,6 +56,12 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
     
     Color reflection = Color(0, 0, 0);
     Color refraction = Color(0, 0, 0);
+
+    
+    Color irradianceColor = Color(0, 1, 0);
+    Vec3f photonDir = Vec3f(0, 0, 0);
+    sceneRenderer.map->EstimateIrradiance<100>(irradianceColor, photonDir, 1.0f, hitPos,norm);
+
 
     if(refractValue != Color(0, 0, 0) && shadeInfo.CanBounce()){
 
@@ -174,47 +186,45 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
 
         Color intensity = currentLight->Illuminate(shadeInfo, lightDir);
 
-        if(shadeInfo.CurrentBounce() < montCarloBounceNum){
-            for(int j = 0; j < montCarloSamples; j++){
-                float phiOffset = Halton(shadeInfo.CurrentPixelSample(), 2) + rng.RandomFloat();
-                float thetaOffset = Halton(shadeInfo.CurrentPixelSample(), 3) + rng.RandomFloat();
+        // if(shadeInfo.CurrentBounce() < montCarloBounceNum){
+            // for(int j = 0; j < montCarloSamples; j++){
+            //     float phiOffset = Halton(shadeInfo.CurrentPixelSample(), 2) + rng.RandomFloat();
+            //     float thetaOffset = Halton(shadeInfo.CurrentPixelSample(), 3) + rng.RandomFloat();
 
-                Vec3f u = Vec3f(0, 0, 0); 
-                Vec3f v = Vec3f(0, 0, 0);
+            //     Vec3f u = Vec3f(0, 0, 0); 
+            //     Vec3f v = Vec3f(0, 0, 0);
 
-                norm.GetOrthonormals(u, v);
+            //     norm.GetOrthonormals(u, v);
 
-                if(phiOffset > 1.0){
-                    phiOffset = phiOffset - 1;
-                }
+            //     if(phiOffset > 1.0){
+            //         phiOffset = phiOffset - 1;
+            //     }
 
-                if(thetaOffset > 1.0){
-                    thetaOffset = thetaOffset - 1.0;
-                }
+            //     if(thetaOffset > 1.0){
+            //         thetaOffset = thetaOffset - 1.0;
+            //     }
 
-                float phi = (2.0*Pi<float>() * phiOffset);
-                float cosTheta =  sqrt(thetaOffset);
+            //     float phi = (2.0*Pi<float>() * phiOffset);
+            //     float cosTheta =  sqrt(thetaOffset);
 
-                float sinTheta = sqrt(1.0 - (cosTheta * cosTheta));
+            //     float sinTheta = sqrt(1.0 - (cosTheta * cosTheta));
 
-                Vec3f localDir = Vec3f(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);  
-                Vec3f worldDir = (localDir.x * u) + (localDir.y * v) + (localDir.z * norm);
+            //     Vec3f localDir = Vec3f(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);  
+            //     Vec3f worldDir = (localDir.x * u) + (localDir.y * v) + (localDir.z * norm);
 
-                Ray montCarloRay = Ray(hitPos, worldDir);
+            //     Ray montCarloRay = Ray(hitPos, worldDir);
 
-                float dist = BIGFLOAT;
+            //     float dist = BIGFLOAT;
 
-                ambientColor += (shadeInfo.TraceSecondaryRay(montCarloRay, dist))*baseColor ; 
-            }
+            //     ambientColor += (shadeInfo.TraceSecondaryRay(montCarloRay, dist))*baseColor ; 
+            // }
 
-            ambientColor = (ambientColor/montCarloSamples);
-        }
-        // if(currentLight->IsAmbient()){
-        //     ambientColor += intensity * baseColor;
+            // ambientColor = (ambientColor/montCarloSamples);
         // }
+        if(currentLight->IsAmbient()){
+            ambientColor += intensity * baseColor;
+        }
 
-
-        
             // printf("Current light is %s\n", currentLight->GetName());
 
             lightDir = Normalize(lightDir);
@@ -222,25 +232,29 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
             Vec3f n = shadeInfo.N();
             Vec3f h = Normalize(lightDir+camera);
             // printf("Normals are [%f, %f, %f]\n", n.x, n.y, n.z);
-            // printf("Object name is %s\n", hInfo.node->GetName());
-            
+            // printf(Object name is %s\n", hInfo.node->GetName());    
                 
             float cosPhi = Max((n % h), 0.0f);
 
             float cosTheta = Max((n % lightDir), 0.0f);
-
             
                 
             Color specularLight =  (reflectColor * pow(cosPhi, gloss)) * ((gloss+2)/(8*Pi<float>()));
             Color difuseLight = (cosTheta * baseColor) * (1/Pi<float>());
-            blinnColor += (intensity * (difuseLight + specularLight));
+
+            
+            blinnColor += (intensity * (difuseLight + specularLight)) ;
 
 
         
     }
+
+    printf("irradiance Color [%f, %f, %f]\n", irradianceColor.r, irradianceColor.g, irradianceColor.b);
+    blinnColor =  blinnColor * ((1/M_PI) * irradianceColor);
+    
     // printf("Blinn color = [%f, %f, %f]\n", blinnColor.r, blinnColor.g, blinnColor.b);
 
-    return blinnColor + ambientColor + reflection + refraction + emission.GetValue();
+    return blinnColor;
     // return ambientColor + emission.GetValue();
 }
 
@@ -253,3 +267,16 @@ Color MtlMicrofacet::Shade(ShadeInfo const &shadeInfo ) const
 {
     return Color();
 }
+
+bool MtlPhong::GenerateSample( SamplerInfo const &sInfo, Vec3f &dir, Info &si ) const{
+   return false;
+}
+
+bool MtlMicrofacet::GenerateSample( SamplerInfo const &sInfo, Vec3f &dir, Info &si ) const{
+   return false;
+}
+
+bool MtlBlinn::GenerateSample( SamplerInfo const &sInfo, Vec3f &dir, Info &si ) const{
+   return false;
+}
+

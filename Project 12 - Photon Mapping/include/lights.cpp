@@ -148,3 +148,44 @@ bool PointLight::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide) cons
 
     return false;
 }
+
+void  PointLight::RandomPhoton( RNG &rng, Ray &r, Color &c ) const {
+    float randU = rng.RandomFloat();
+    float randV = rng.RandomFloat();
+
+    float theta = 2.0 * M_PI * randU;
+    float posZ = (1.0 - 2.0 * randV);
+
+    float rProj = sqrtf(1.0 - posZ*posZ);
+
+    float posX = rProj * cos(theta);
+    float posY = rProj * sin(theta);
+
+    Vec3f rayPos = Vec3f(posX, posY, posZ) ;
+
+
+    r.p = (size*rayPos) +  position;
+
+    float phiOffset = rng.RandomFloat();
+    
+    float thetaOffset = rng.RandomFloat();
+
+    Vec3f u = Vec3f(0, 0, 0); 
+    Vec3f v = Vec3f(0, 0, 0);
+
+    Vec3f norm = (rayPos);
+    norm.GetOrthonormals(u, v);
+
+
+    float phi = (2.0*Pi<float>() * phiOffset);
+    float cosTheta =  thetaOffset;
+
+    float sinTheta = sqrt(1.0 - (cosTheta * cosTheta));
+
+    Vec3f localDir = Vec3f(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);  
+    Vec3f worldDir = (localDir.x * u) + (localDir.y * v) + (localDir.z * norm);
+
+    r.dir = worldDir;
+
+    c = intensity * 4.0f * Pi<float>() * size * size;
+}

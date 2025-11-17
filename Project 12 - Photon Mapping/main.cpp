@@ -24,7 +24,7 @@
 #include "include/headerFiles/lights.h"
 #include "include/headerFiles/renderer.h"
 #include "include/headerFiles/rng.h"
-
+#include "include/headerFiles/photonmap.h"
 
 #include "include/headerFiles/ray.h"
 using namespace std;
@@ -54,14 +54,14 @@ int camOffset = 1;
 int bounceNum = 2;
 int montCarloBounceNum = 2; 
 
-
+int photonCount = 100000;
 
 int minSampleCount = 4;
-int maxSampleCount = 8;
+int maxSampleCount = 4;
 float minShadowSamples = 4;
 float maxShadowSamples = 8;
 
-int montCarloSamples = 8;
+int montCarloSamples = 2;
 float errorThreshold = 0.01;
 
 calculateRay rayCalculation; 
@@ -84,19 +84,28 @@ void RayTracer::BeginRender(){
     pixels = sceneImage.GetPixels();
     zBuf = sceneImage.GetZBuffer();
     sampleCount = sceneImage.GetSampleCount();
-    
 
+    matList = scene.materials;
+    lightList = scene.lights;
+    env = scene.environment;
+    background = scene.background;
+    cam = GetCamera();
+
+    rootNode = scene.rootNode;
+    camOffset = cam.focaldist;
+    
+    PhotonMap *photonMap = new PhotonMap;
+
+    photonMap->Resize(photonCount);
+    printf("remaining photons %d\n", photonMap->RemainingSpace());
+
+    fillPhotonMap(photonMap);
+
+    map = photonMap;
 
     thread t([&]{
 
-        matList = scene.materials;
-        lightList = scene.lights;
-        env = scene.environment;
-        background = scene.background;
-
-        cam = GetCamera();
-        rootNode = scene.rootNode;
-        camOffset = cam.focaldist;
+     
 
         Vec3f position = cam.pos;
 
@@ -129,6 +138,7 @@ void RayTracer::BeginRender(){
         std::vector<std::thread> threads;
         threads.reserve(numThreads);
 
+        printf("number of photons start is %d\n", photonMap->NumPhotons());
 
         int pixelIndex = 0;
         auto trace = [&] 
@@ -214,6 +224,8 @@ void RayTracer::BeginRender(){
         sceneImage.ComputeSampleCountImage();
         // sceneImage.SaveSampleCountImage("sampleImage.png");
         sceneImage.SaveImage("renderedImage.png");
+
+        // printf("number of photons left is %d\n", photonMap->RemainingSpace());
         
     });
 
@@ -221,8 +233,6 @@ void RayTracer::BeginRender(){
 
 
 }
-
-
 
 Color RayTracer::takeSample(int x, int y, int i, HitInfo &hitInf)
 {
@@ -239,7 +249,6 @@ Color RayTracer::takeSample(int x, int y, int i, HitInfo &hitInf)
     if(ranAng > 1){
         ranAng = ranAng - 1;
     }
-
 
     if(ranX > 1){
         ranX = ranX - 1;
@@ -283,47 +292,40 @@ Color RayTracer::takeSample(int x, int y, int i, HitInfo &hitInf)
     return rayCalculation.shootRay(x, y, currentRay, hitInf, i);
 }
 
+void RayTracer::fillPhotonMap(PhotonMap* map){
+    bool inPhotonMap = true;
+    while(inPhotonMap){
+        for(int j = 0; j < lightList.size(); j++){
+            Light* currentLight = lightList[j];
 
-// void RayTracer::initalRays(int i, Matrix4f wsTransMatrix){
+            if(!currentLight->IsPhotonSource()){
+                continue; 
+            }
 
-//     int x = i%(int)imageWidth;
-//     int y = i/imageWidth;
+            Ray currentRay;
+            Color currentColor = Color(1, 1, 1);
+            currentLight->RandomPhoton(rng, currentRay, currentColor);
 
-//     Color finalColor = Color(0, 0, 0);
-//     HitInfo hitInf = HitInfo();
+            HitInfo hitInf = HitInfo();
 
-//     for(int i = 0; i < initialSampleCount; i++)
-//     {
-//         float ranX = Halton(i, 2);
-//         float ranY = Halton(i, 3);
+            hitInf.Init();
+            hitInf.node = &rootNode;
 
-//         Ray currentRay;
+            // printf("ray position: [%f, %f, %f]\n", currentRay.dir.x, currentRay.dir.y, currentRay.dir.z);
+            if(rayCalculation.TraceRay(currentRay, hitInf, HIT_FRONT_AND_BACK)){
+                bool successfulPhotonAdd = map->AddPhoton(hitInf.p, currentRay.dir, currentColor);
+            // printf("hi\n");
 
-//         //Camera location
-//         currentRay.p = cam.pos;
+                if(!successfulPhotonAdd){
+                    inPhotonMap = false;
+                    break;
+                }
+            } 
+        }
+    }
 
-//         //Generate rays from camera
-//         //get to the top corner of the image, move over half pixel each time
-//         auto rayX = -(wsWidth/2) + ((wsWidth* (x + 1/2 + ranX) / imageWidth)) ;
-//         auto rayY = (wsHeight/2) - ((wsHeight* (y + 1/2 + ranY) / imageHeight)) ;
-
-//         currentRay.dir.Set(rayX, rayY, -camOffset); //calculate the direction
-
-//         // currentRay.p = Vec3f(wsTransMatrix * Vec4f(currentRay.p, 0.0));
-//         currentRay.dir = Vec3f(wsTransMatrix * Vec4f(currentRay.dir, 0.0));
-//         currentRay.dir.Normalize();
-
-//         hitInf.Init();
-//         hitInf.node = &rootNode;
-        
-//         finalColor += rayCalculation.shootRay(x, y, currentRay, hitInf);
-//     }
-
-//     int numPixel = y*imageWidth + x;
-
-//     pixels[numPixel] = (Color24) (finalColor/initialSampleCount);
-//     zBuf[numPixel] = hitInf.z;
-// }
-
+    map->ScalePhotonPowers(1/photonCount);
+    map->PrepareForIrradianceEstimation();
+}
 
 void StopRender(){}

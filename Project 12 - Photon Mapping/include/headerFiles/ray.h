@@ -16,6 +16,8 @@ class calculateRay : public Renderer
 
         bool TraceShadowRay(Ray const &ray, float t_max, int hitSide) const ;
 
+        PhotonMap const * GetPhotonMap();
+
         // Color shootRay(Ray const &ray, HitInfo &hInfo, int bounceNum);
 };
 
