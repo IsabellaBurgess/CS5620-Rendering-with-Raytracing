@@ -22,11 +22,13 @@ extern float shadowBias;
 extern float minShadowSamples;
 extern float maxShadowSamples;
 
+extern int photonCount;
+
 Color PointLight::Illuminate( ShadeInfo const &sInfo, Vec3f &dir ) const{    
     Vec3f d = position - sInfo.P(); 
     dir = d.GetNormalized(); 
 
-    Vec3f u;
+    Vec3f u; 
     Vec3f v;
     dir.GetOrthonormals(u, v);
 
@@ -187,5 +189,5 @@ void  PointLight::RandomPhoton( RNG &rng, Ray &r, Color &c ) const {
 
     r.dir = worldDir;
 
-    c = intensity * 4.0f * Pi<float>() * size * size;
+    c = (intensity * 4.0f * Pi<float>() * size * size)/photonCount;
 }

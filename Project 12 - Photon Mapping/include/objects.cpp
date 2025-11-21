@@ -106,7 +106,7 @@ bool Plane::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide) const{
             if(ray.dir.z > 0 ){
 
                 hInfo.front = false;
-                // hInfo.N = -hInfo.N;
+                hInfo.N = -hInfo.N;
             }
 
 

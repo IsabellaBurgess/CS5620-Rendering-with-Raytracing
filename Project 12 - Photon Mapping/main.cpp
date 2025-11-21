@@ -51,13 +51,13 @@ float maxT = BIGFLOAT;
 const int numThreads = 20 ;
 
 int camOffset = 1;  
-int bounceNum = 2;
+int bounceNum = 3;
 int montCarloBounceNum = 2; 
 
-int photonCount = 100000;
+int photonCount = 1000000;
 
 int minSampleCount = 4;
-int maxSampleCount = 4;
+int maxSampleCount = 8;
 float minShadowSamples = 4;
 float maxShadowSamples = 8;
 
@@ -96,7 +96,7 @@ void RayTracer::BeginRender(){
     
     PhotonMap *photonMap = new PhotonMap;
 
-    photonMap->Resize(photonCount);
+    photonMap->Resize(photonCount*lightList.size());
     printf("remaining photons %d\n", photonMap->RemainingSpace());
 
     fillPhotonMap(photonMap);
@@ -138,7 +138,7 @@ void RayTracer::BeginRender(){
         std::vector<std::thread> threads;
         threads.reserve(numThreads);
 
-        printf("number of photons start is %d\n", photonMap->NumPhotons());
+        // printf("number of photons start is %d\n", photonMap->NumPhotons());
 
         int pixelIndex = 0;
         auto trace = [&] 
@@ -313,19 +313,78 @@ void RayTracer::fillPhotonMap(PhotonMap* map){
 
             // printf("ray position: [%f, %f, %f]\n", currentRay.dir.x, currentRay.dir.y, currentRay.dir.z);
             if(rayCalculation.TraceRay(currentRay, hitInf, HIT_FRONT_AND_BACK)){
-                bool successfulPhotonAdd = map->AddPhoton(hitInf.p, currentRay.dir, currentColor);
-            // printf("hi\n");
 
-                if(!successfulPhotonAdd){
+                ShadeInfo shadeInf(lightList, env, rng);
+                shadeInf.SetHit(currentRay, hitInf);
+
+                DirSampler::Info info;
+                info.SetVoid();
+                
+
+                if(map->RemainingSpace() == 0){
                     inPhotonMap = false;
                     break;
                 }
+
+                
+                map->AddPhoton(hitInf.p, currentRay.dir, currentColor);
+
+                if(hitInf.node->GetMaterial()->GenerateSample(shadeInf, currentRay.dir, info)){
+                    currentRay.p = hitInf.p;
+                    // printf("color is [%f, %f, %f]\n", info.mult.r, info.mult.g, info.mult.b);
+                    bouncePhoton(map, info, currentRay);
+                }                    
+            
             } 
         }
     }
 
-    map->ScalePhotonPowers(1/photonCount);
+    // map->ScalePhotonPowers((float) (5/(photonCount*lightList.size())));
     map->PrepareForIrradianceEstimation();
 }
+
+void RayTracer::bouncePhoton(PhotonMap* map, DirSampler::Info &si, Ray ray){
+    bool inPhotonMap = true;
+    HitInfo hitInf = HitInfo();
+
+    hitInf.Init();
+    hitInf.node = &rootNode;
+
+    if(rayCalculation.TraceRay(ray, hitInf, HIT_FRONT_AND_BACK)){
+
+        Color photonColor = si.mult;
+        if(si.lobe == DirSampler::Lobe::DIFFUSE){
+            map->AddPhoton(hitInf.p, ray.dir, si.mult);
+        }
+
+        ShadeInfo shadeInf(lightList, env, rng);
+        shadeInf.SetHit(ray, hitInf);
+
+        DirSampler::Info info;
+
+        info = si;
+
+        if(map->RemainingSpace() == 0){
+            return;
+        }
+
+        
+        // printf("color is [%f, %f, %f]\n", si.mult.r, si.mult.g, si.mult.b);
+        if(hitInf.node->GetMaterial()->GenerateSample(shadeInf, ray.dir, si)){
+            // printf("prob is %f\n", info.prob);
+            // printf("color is [%f, %f, %f]\n", si.mult.r, si.mult.g, si.mult.b);
+            // printf("color2 is [%f, %f, %f]\n", si.mult.r, si.mult.g, si.mult.b);
+
+            bouncePhoton(map, si, ray);
+
+        }
+        
+
+    }
+
+    return;
+
+}
+
 
 void StopRender(){}

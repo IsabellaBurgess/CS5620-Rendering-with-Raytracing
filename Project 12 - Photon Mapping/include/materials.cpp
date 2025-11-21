@@ -42,13 +42,16 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
 
     Color ambientColor = Color(0.0, 0.0, 0.0);
     Color blinnColor = Color(0.0,0.0,0.0);
+    Color diffuseLight = Color(0.0, 0.0, 0.0);
+    Color specularLight = Color(0.0, 0.0, 0.0);
+    
     
     Color absorbValue = this->absorption;
 
     //this!! this is what needs to get updated and changed
     // TexturedColor baseTex = this->Diffuse();
-	Color baseColor = this->Diffuse().Eval(shadeInfo.UVW());
-    Color reflectColor = this->Specular().Eval(shadeInfo.UVW());
+	Color baseColor = Diffuse().Eval(shadeInfo.UVW());
+    Color reflectColor = Specular().Eval(shadeInfo.UVW());
 
     
     Color reflectValue = this->reflection.GetValue();
@@ -58,9 +61,11 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
     Color refraction = Color(0, 0, 0);
 
     
-    Color irradianceColor = Color(0, 1, 0);
+    Color irradianceColor = Color(0, 0, 0);
     Vec3f photonDir = Vec3f(0, 0, 0);
-    sceneRenderer.map->EstimateIrradiance<100>(irradianceColor, photonDir, 1.0f, hitPos,norm);
+    sceneRenderer.map->EstimateIrradiance<50, PHOTONMAP_FILTER_CONSTANT>(irradianceColor, photonDir, 0.1f, hitPos, norm, 1.0f);
+
+    
 
 
     if(refractValue != Color(0, 0, 0) && shadeInfo.CanBounce()){
@@ -227,34 +232,33 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
 
             // printf("Current light is %s\n", currentLight->GetName());
 
-            lightDir = Normalize(lightDir);
+        lightDir = Normalize(lightDir);
 
-            Vec3f n = shadeInfo.N();
-            Vec3f h = Normalize(lightDir+camera);
-            // printf("Normals are [%f, %f, %f]\n", n.x, n.y, n.z);
-            // printf(Object name is %s\n", hInfo.node->GetName());    
-                
-            float cosPhi = Max((n % h), 0.0f);
-
-            float cosTheta = Max((n % lightDir), 0.0f);
+        Vec3f n = shadeInfo.N();
+        Vec3f h = Normalize(lightDir+camera);
+        // printf("Normals are [%f, %f, %f]\n", n.x, n.y, n.z);
+        // printf(Object name is %s\n", hInfo.node->GetName());    
             
-                
-            Color specularLight =  (reflectColor * pow(cosPhi, gloss)) * ((gloss+2)/(8*Pi<float>()));
-            Color difuseLight = (cosTheta * baseColor) * (1/Pi<float>());
+        float cosPhi = Max((n % h), 0.0f);
 
+        float cosTheta = Max((n % lightDir), 0.0f);
+        
             
-            blinnColor += (intensity * (difuseLight + specularLight)) ;
+        specularLight =  (reflectColor * pow(cosPhi, gloss)) * ((gloss+2)/(8*Pi<float>()));
+        diffuseLight = ( (cosTheta * baseColor) * (1/Pi<float>()));
 
+        blinnColor += intensity * (diffuseLight + specularLight);
 
         
     }
 
-    printf("irradiance Color [%f, %f, %f]\n", irradianceColor.r, irradianceColor.g, irradianceColor.b);
-    blinnColor =  blinnColor * ((1/M_PI) * irradianceColor);
+    // printf("irradiance Color [%f, %f, %f]\n", irradianceColor.r, irradianceColor.g, irradianceColor.b);
+    // blinnColor =  blinnColor ;
     
     // printf("Blinn color = [%f, %f, %f]\n", blinnColor.r, blinnColor.g, blinnColor.b);
 
-    return blinnColor;
+    Color indirectColor = (shadeInfo.Eval(diffuse)) * (( irradianceColor/M_PI)) ;
+    return (blinnColor  + reflection + refraction + indirectColor + emission.GetValue()) ;
     // return ambientColor + emission.GetValue();
 }
 
@@ -277,6 +281,177 @@ bool MtlMicrofacet::GenerateSample( SamplerInfo const &sInfo, Vec3f &dir, Info &
 }
 
 bool MtlBlinn::GenerateSample( SamplerInfo const &sInfo, Vec3f &dir, Info &si ) const{
-   return false;
+    Vec3f const camera = sInfo.V();
+    Vec3f const hitPos = sInfo.P();
+    Vec3f const norm = sInfo.N();
+
+    float gloss = Glossiness().GetValue();
+    Vec3f lightDir = Vec3f(0,0,0 );
+    // float lightIntensity = 1.0;
+
+    Color blinnColor = Color(0.0,0.0,0.0);
+    
+    Color absorbValue = this->absorption;
+
+    //this!! this is what needs to get updated and changed
+    // TexturedColor baseTex = this->Diffuse();
+	Color baseColor = this->Diffuse().Eval(sInfo.UVW());
+    Color reflectColor = this->Specular().Eval(sInfo.UVW());
+
+    Color reflectValue = this->reflection.GetValue();
+    Color refractValue = this->refraction.GetValue();
+
+    float ranNum = rng.RandomFloat();
+
+    //Probablility set up with the help of Austin Kim.
+    // Color diff = sInfo.Eval(diffuse);
+    // Color spec = sInfo.Eval(specular);
+    // Color refract = sInfo.Eval(refraction);
+
+    // float rSum = diff.r + spec.r + refract.r;
+    // float gSum = diff.g + spec.g + refract.g;
+    // float bSum = diff.b + spec.b + refract.b;
+
+    // float diffSum = diff.Sum();
+    // float specSum = spec.Sum();
+    // float refractSum = refract.Sum();
+
+    // float totalSum = diffSum + specSum + refractSum;
+
+    // float Pr = Max(rSum, gSum, bSum);
+
+    // float diffProb = (diffSum / totalSum) * Pr; 
+    // float specProb = (specSum / totalSum) * Pr;
+    // float refractProb = (refractProb / totalSum) * Pr;
+
+    // float totalProb = diffProb + specProb + refractProb;
+
+        // printf("diffuse is %f\n", diffuseProb);
+        // printf("rand is %f\n", ranNum);
+
+    float diffProb = diffuse.GetValue().Max();
+    float specProb = reflection.GetValue().Max();
+    float refractProb = refraction.GetValue().Max();
+    if(ranNum <= diffProb){
+        // si.mult = Color(1, 0, 0);
+
+        float phiOffset = rng.RandomFloat();
+    
+        float thetaOffset = rng.RandomFloat();
+
+        Vec3f u = Vec3f(0, 0, 0); 
+        Vec3f v = Vec3f(0, 0, 0);
+
+        norm.GetOrthonormals(u, v);
+
+        float phi = (2.0*Pi<float>() * phiOffset);
+        float dirCosTheta =  thetaOffset;
+
+        float dirSinTheta = sqrt(1.0 - (dirCosTheta * dirCosTheta));
+
+        Vec3f localDir = Vec3f(dirSinTheta * cos(phi), dirSinTheta * sin(phi), dirCosTheta);  
+        Vec3f finalDir = (localDir.x * u) + (localDir.y * v) + (localDir.z * norm);
+
+        lightDir = Normalize(dir);
+
+        Vec3f n = Normalize(norm);
+        Vec3f h = Normalize(lightDir+camera);
+        // printf("Normals are [%f, %f, %f]\n", n.x, n.y, n.z);
+        // printf(Object name is %s\n", hInfo.node->GetName());    
+            
+        float cosPhi = Max((n % h), 0.0f);
+
+        float cosTheta = Max((n % lightDir), 0.0f);
+        
+            
+        // Color specularLight =  (reflectColor * pow(cosPhi, gloss)) * ((gloss+2)/(8*Pi<float>()));
+        Color diffuseLight = (cosTheta * baseColor) * (1/Pi<float>());
+        
+        si.mult = sInfo.Eval(diffuse) / ((2*M_PI)* diffProb);
+        si.prob = diffProb; 
+        si.lobe = Lobe::DIFFUSE;
+
+        dir = Normalize(finalDir);
+
+        return true; 
+    }   
+
+    // else if(ranNum <= diffProb + specProb){
+        
+        // float phiOffset = rng.RandomFloat();
+        // float thetaOffset = rng.RandomFloat();
+
+        // Vec3f u = Vec3f(0, 0, 0); 
+        // Vec3f v = Vec3f(0, 0, 0);
+
+        // norm.GetOrthonormals(u, v);
+
+        // float phi = 2.0*Pi<float>() * phiOffset;
+        // float cosTheta = pow(1 - thetaOffset, 1.0/(glossiness.GetValue() + 1.0));
+
+        // float sinTheta = sqrt(1.0 - pow(cosTheta, 2.0));
+
+        // Vec3f localH = Vec3f(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);  
+        // Vec3f worldH = (localH.x * u) + (localH.y * v) + (localH.z * norm);
+
+        // // Vec3f h = (norm * cosTheta) + (u )
+
+    //     Vec3f reflectDir = 2.0*(norm%camera)*norm - camera;
+        
+    //     si.mult = sInfo.Eval(reflection);
+    //     si.prob = specProb; 
+    //     si.lobe = Lobe::SPECULAR;
+
+    //     dir = Normalize(reflectDir);
+
+    //     return true;
+    // }
+
+    else if(ranNum <= diffProb + specProb){
+        float ior = this->IOR();
+        float eta = 1/ior;
+
+        if(!sInfo.IsFront())
+        {
+            Vec3f norm = -norm;
+            eta = ior/1;
+        }
+
+        float refractCosThetaO = pow((camera % norm),2.0);
+        float refractCosThetaTSquared = 1.0 - (pow(eta, 2.0)*(1.0-(refractCosThetaO)));
+
+            float phiOffset = rng.RandomFloat();
+            float thetaOffset = rng.RandomFloat();
+
+            Vec3f u = Vec3f(0, 0, 0); 
+            Vec3f v = Vec3f(0, 0, 0);
+
+            norm.GetOrthonormals(u, v);
+
+            float phi = 2.0*Pi<float>() * phiOffset;
+            float cosTheta = pow(1 - thetaOffset, 1.0/(glossiness.GetValue() + 1.0));
+
+            float sinTheta = sqrt(1.0 - pow(cosTheta, 2.0));
+
+            Vec3f localH = Vec3f(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);  
+            Vec3f worldH = (localH.x * u) + (localH.y * v) + (localH.z * norm);
+
+            Vec3f refractDir;
+
+            refractDir = -eta * camera - (sqrt(refractCosThetaTSquared)- eta*(camera % worldH))*worldH;
+
+            si.mult = sInfo.Eval(refraction);
+            si.prob = refractProb; 
+            si.lobe = Lobe::TRANSMISSION;
+
+            dir = Normalize(refractDir);
+
+            return true;
+        
+    }
+
+    else{
+        return false;
+    }   
 }
 

@@ -3,6 +3,7 @@
 #define _MAIN_HEADER_
 
 #include "renderer.h"
+#include "scene.h"
 
 
 class RayTracer : public Renderer
@@ -20,8 +21,10 @@ public:
                            2.000, 2.000, 2.000, 2.000, 2.000, 2.000, 2.000, 2.000, 2.000, 2.000,
                            1.994, 1.994, 1.994, 1.994, 1.994, 1.994, 1.994, 1.994, 1.994, 1.994};
     void fillPhotonMap(PhotonMap* map);
+    void bouncePhoton(PhotonMap* map, DirSampler::Info &si, Ray ray );
 
     PhotonMap const* GetPhotonMap() const{return map;}
+
 
     PhotonMap* map;
 };
