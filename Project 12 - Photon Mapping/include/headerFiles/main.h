@@ -20,12 +20,15 @@ public:
                            2.020, 2.018, 2.017, 2.015, 2.014, 2.013, 2.012, 2.011, 2.010, 2.009,
                            2.000, 2.000, 2.000, 2.000, 2.000, 2.000, 2.000, 2.000, 2.000, 2.000,
                            1.994, 1.994, 1.994, 1.994, 1.994, 1.994, 1.994, 1.994, 1.994, 1.994};
-    void fillPhotonMap(PhotonMap* map);
-    void bouncePhoton(PhotonMap* map, DirSampler::Info &si, Ray ray );
+    void fillPhotonMap(PhotonMap* map, PhotonMap* causticMap);
+    void bouncePhoton(PhotonMap* map, PhotonMap* caustics, DirSampler::Info &si, Ray ray, Color power);
 
     PhotonMap const* GetPhotonMap() const{return map;}
+    PhotonMap const* GetCausticsMap() const{return caustics;}
+
 
 
     PhotonMap* map;
+    PhotonMap* caustics; 
 };
 #endif

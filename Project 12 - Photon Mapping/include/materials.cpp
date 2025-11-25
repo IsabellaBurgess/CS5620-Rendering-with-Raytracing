@@ -20,14 +20,12 @@ extern Camera cam;
 extern calculateRay rayCalculation; 
 extern RayTracer sceneRenderer;
 extern RNG rng;
+
 extern int montCarloBounceNum; 
 extern int montCarloSamples;
 extern int photonCount;
 
 extern PhotonMap *photonMap;
-
- 
-
 
 
 Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
@@ -63,9 +61,10 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
     
     Color irradianceColor = Color(0, 0, 0);
     Vec3f photonDir = Vec3f(0, 0, 0);
-    sceneRenderer.map->EstimateIrradiance<50, PHOTONMAP_FILTER_CONSTANT>(irradianceColor, photonDir, 0.1f, hitPos, norm, 1.0f);
 
-    
+    Color irradianceCaustics = Color(0,0,0);
+    Vec3f causticDir = Vec3f(0, 0, 0);
+
 
 
     if(refractValue != Color(0, 0, 0) && shadeInfo.CanBounce()){
@@ -191,44 +190,52 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
 
         Color intensity = currentLight->Illuminate(shadeInfo, lightDir);
 
-        // if(shadeInfo.CurrentBounce() < montCarloBounceNum){
-            // for(int j = 0; j < montCarloSamples; j++){
-            //     float phiOffset = Halton(shadeInfo.CurrentPixelSample(), 2) + rng.RandomFloat();
-            //     float thetaOffset = Halton(shadeInfo.CurrentPixelSample(), 3) + rng.RandomFloat();
+        if(shadeInfo.CurrentBounce() < montCarloBounceNum){
+            for(int j = 0; j < montCarloSamples; j++){
+                float phiOffset = Halton(shadeInfo.CurrentPixelSample(), 2) + rng.RandomFloat();
+                float thetaOffset = Halton(shadeInfo.CurrentPixelSample(), 3) + rng.RandomFloat();
 
-            //     Vec3f u = Vec3f(0, 0, 0); 
-            //     Vec3f v = Vec3f(0, 0, 0);
+                Vec3f u = Vec3f(0, 0, 0); 
+                Vec3f v = Vec3f(0, 0, 0);
 
-            //     norm.GetOrthonormals(u, v);
+                norm.GetOrthonormals(u, v);
 
-            //     if(phiOffset > 1.0){
-            //         phiOffset = phiOffset - 1;
-            //     }
+                if(phiOffset > 1.0){
+                    phiOffset = phiOffset - 1;
+                }
 
-            //     if(thetaOffset > 1.0){
-            //         thetaOffset = thetaOffset - 1.0;
-            //     }
+                if(thetaOffset > 1.0){
+                    thetaOffset = thetaOffset - 1.0;
+                }
 
-            //     float phi = (2.0*Pi<float>() * phiOffset);
-            //     float cosTheta =  sqrt(thetaOffset);
+                float phi = (2.0*Pi<float>() * phiOffset);
+                float cosTheta =  sqrt(thetaOffset);
 
-            //     float sinTheta = sqrt(1.0 - (cosTheta * cosTheta));
+                float sinTheta = sqrt(1.0 - (cosTheta * cosTheta));
 
-            //     Vec3f localDir = Vec3f(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);  
-            //     Vec3f worldDir = (localDir.x * u) + (localDir.y * v) + (localDir.z * norm);
+                Vec3f localDir = Vec3f(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);  
+                Vec3f worldDir = (localDir.x * u) + (localDir.y * v) + (localDir.z * norm);
 
-            //     Ray montCarloRay = Ray(hitPos, worldDir);
+                Ray montCarloRay = Ray(hitPos, worldDir);
 
-            //     float dist = BIGFLOAT;
+                float dist = BIGFLOAT;
 
-            //     ambientColor += (shadeInfo.TraceSecondaryRay(montCarloRay, dist))*baseColor ; 
-            // }
+                irradianceColor += (shadeInfo.TraceSecondaryRay(montCarloRay, dist))*baseColor ; 
+            }
 
-            // ambientColor = (ambientColor/montCarloSamples);
-        // }
-        if(currentLight->IsAmbient()){
-            ambientColor += intensity * baseColor;
+            ambientColor = (ambientColor/montCarloSamples);
         }
+        else {
+
+
+    
+    sceneRenderer.map->EstimateIrradiance<100, PHOTONMAP_FILTER_CONSTANT>(irradianceColor, photonDir, 5.0f, hitPos, norm, 1.0f);
+    sceneRenderer.caustics->EstimateIrradiance<100, PHOTONMAP_FILTER_LINEAR>(irradianceCaustics, causticDir, 5.0f, hitPos, norm, 0.25f);
+
+        }
+        // if(currentLight->IsAmbient()){
+        //     ambientColor += intensity * baseColor;
+        // }
 
             // printf("Current light is %s\n", currentLight->GetName());
 
@@ -258,7 +265,8 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
     // printf("Blinn color = [%f, %f, %f]\n", blinnColor.r, blinnColor.g, blinnColor.b);
 
     Color indirectColor = (shadeInfo.Eval(diffuse)) * (( irradianceColor/M_PI)) ;
-    return (blinnColor  + reflection + refraction + indirectColor + emission.GetValue()) ;
+    Color causticColor = (shadeInfo.Eval(diffuse)) * (( irradianceCaustics/M_PI));
+    return (blinnColor  + reflection + refraction + indirectColor + causticColor + emission.GetValue()) ;
     // return ambientColor + emission.GetValue();
 }
 
@@ -295,44 +303,14 @@ bool MtlBlinn::GenerateSample( SamplerInfo const &sInfo, Vec3f &dir, Info &si ) 
 
     //this!! this is what needs to get updated and changed
     // TexturedColor baseTex = this->Diffuse();
-	Color baseColor = this->Diffuse().Eval(sInfo.UVW());
-    Color reflectColor = this->Specular().Eval(sInfo.UVW());
-
-    Color reflectValue = this->reflection.GetValue();
-    Color refractValue = this->refraction.GetValue();
 
     float ranNum = rng.RandomFloat();
 
-    //Probablility set up with the help of Austin Kim.
-    // Color diff = sInfo.Eval(diffuse);
-    // Color spec = sInfo.Eval(specular);
-    // Color refract = sInfo.Eval(refraction);
+    float diffProb = diffuse.GetValue().Gray();
+    float specProb = reflection.GetValue().Gray();
+    float refractProb = refraction.GetValue().Gray();
 
-    // float rSum = diff.r + spec.r + refract.r;
-    // float gSum = diff.g + spec.g + refract.g;
-    // float bSum = diff.b + spec.b + refract.b;
-
-    // float diffSum = diff.Sum();
-    // float specSum = spec.Sum();
-    // float refractSum = refract.Sum();
-
-    // float totalSum = diffSum + specSum + refractSum;
-
-    // float Pr = Max(rSum, gSum, bSum);
-
-    // float diffProb = (diffSum / totalSum) * Pr; 
-    // float specProb = (specSum / totalSum) * Pr;
-    // float refractProb = (refractProb / totalSum) * Pr;
-
-    // float totalProb = diffProb + specProb + refractProb;
-
-        // printf("diffuse is %f\n", diffuseProb);
-        // printf("rand is %f\n", ranNum);
-
-    float diffProb = diffuse.GetValue().Max();
-    float specProb = reflection.GetValue().Max();
-    float refractProb = refraction.GetValue().Max();
-    if(ranNum <= diffProb){
+    if(ranNum < diffProb){
         // si.mult = Color(1, 0, 0);
 
         float phiOffset = rng.RandomFloat();
@@ -351,23 +329,8 @@ bool MtlBlinn::GenerateSample( SamplerInfo const &sInfo, Vec3f &dir, Info &si ) 
 
         Vec3f localDir = Vec3f(dirSinTheta * cos(phi), dirSinTheta * sin(phi), dirCosTheta);  
         Vec3f finalDir = (localDir.x * u) + (localDir.y * v) + (localDir.z * norm);
-
-        lightDir = Normalize(dir);
-
-        Vec3f n = Normalize(norm);
-        Vec3f h = Normalize(lightDir+camera);
-        // printf("Normals are [%f, %f, %f]\n", n.x, n.y, n.z);
-        // printf(Object name is %s\n", hInfo.node->GetName());    
-            
-        float cosPhi = Max((n % h), 0.0f);
-
-        float cosTheta = Max((n % lightDir), 0.0f);
         
-            
-        // Color specularLight =  (reflectColor * pow(cosPhi, gloss)) * ((gloss+2)/(8*Pi<float>()));
-        Color diffuseLight = (cosTheta * baseColor) * (1/Pi<float>());
-        
-        si.mult = sInfo.Eval(diffuse) / ((2*M_PI)* diffProb);
+        si.mult = diffuse.GetValue();
         si.prob = diffProb; 
         si.lobe = Lobe::DIFFUSE;
 
@@ -375,83 +338,104 @@ bool MtlBlinn::GenerateSample( SamplerInfo const &sInfo, Vec3f &dir, Info &si ) 
 
         return true; 
     }   
+    
+    else if(ranNum < diffProb + specProb){
 
-    // else if(ranNum <= diffProb + specProb){
+        float phiOffset = rng.RandomFloat();
+        float thetaOffset = rng.RandomFloat();
+
+        Vec3f u = Vec3f(0, 0, 0); 
+        Vec3f v = Vec3f(0, 0, 0);
+
+        norm.GetOrthonormals(u, v);
+
+        float phi = 2.0*Pi<float>() * phiOffset;
+        float cosTheta = pow(thetaOffset, 1.0/(glossiness.GetValue() + 1.0));
+
+        float sinTheta = sqrt(1.0 - pow(cosTheta, 2.0));
+
+        Vec3f localH = Vec3f(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);  
+        Vec3f worldH = (localH.x * u) + (localH.y * v) + (localH.z * norm);
+
+
+        Vec3f reflectDir = (2.0*(worldH%camera))*worldH - camera;
         
-        // float phiOffset = rng.RandomFloat();
-        // float thetaOffset = rng.RandomFloat();
+        si.mult = reflection.GetValue() * abs(reflectDir%worldH);
+        si.prob = specProb; 
+        si.lobe = Lobe::SPECULAR;
 
-        // Vec3f u = Vec3f(0, 0, 0); 
-        // Vec3f v = Vec3f(0, 0, 0);
+        dir = Normalize(reflectDir);
 
-        // norm.GetOrthonormals(u, v);
+        return true;
+    }
 
-        // float phi = 2.0*Pi<float>() * phiOffset;
-        // float cosTheta = pow(1 - thetaOffset, 1.0/(glossiness.GetValue() + 1.0));
 
-        // float sinTheta = sqrt(1.0 - pow(cosTheta, 2.0));
-
-        // Vec3f localH = Vec3f(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);  
-        // Vec3f worldH = (localH.x * u) + (localH.y * v) + (localH.z * norm);
-
-        // // Vec3f h = (norm * cosTheta) + (u )
-
-    //     Vec3f reflectDir = 2.0*(norm%camera)*norm - camera;
-        
-    //     si.mult = sInfo.Eval(reflection);
-    //     si.prob = specProb; 
-    //     si.lobe = Lobe::SPECULAR;
-
-    //     dir = Normalize(reflectDir);
-
-    //     return true;
-    // }
-
-    else if(ranNum <= diffProb + specProb){
+    else if(ranNum < diffProb + specProb + refractProb){    
         float ior = this->IOR();
         float eta = 1/ior;
+    	float eps = 1e-4f;
 
+        Vec3f u = Vec3f(0, 0, 0); 
+        Vec3f v = Vec3f(0, 0, 0);
+
+        norm.GetOrthonormals(u, v);
+
+        // float phi = 2.0*Pi<float>() * phiOffset;
+        float phiOffset = sInfo.RandomFloat();
+        float thetaOffset = sInfo.RandomFloat();
+        float phi = 2.0f * M_PI * phiOffset;
+        float cosTheta = pow(thetaOffset, 1.0f / (glossiness.GetValue() + 1.0f));
+
+        float sinTheta = sqrt(1.0 - pow(cosTheta, 2.0));
+
+        Vec3f localH = Vec3f(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);  
+        Vec3f worldH = (localH.x * u) + (localH.y * v) + (localH.z * norm);
+        
+        float NdotV = camera.Dot(worldH);
+
+        worldH.Normalize();
+        Vec3f refractDir;
         if(!sInfo.IsFront())
         {
             Vec3f norm = -norm;
             eta = ior/1;
+            worldH = -worldH;
         }
 
-        float refractCosThetaO = pow((camera % norm),2.0);
-        float refractCosThetaTSquared = 1.0 - (pow(eta, 2.0)*(1.0-(refractCosThetaO)));
 
-            float phiOffset = rng.RandomFloat();
-            float thetaOffset = rng.RandomFloat();
+        float cosThetaT = (1.0 - ((eta * eta))*(1.0- NdotV * NdotV));
 
-            Vec3f u = Vec3f(0, 0, 0); 
-            Vec3f v = Vec3f(0, 0, 0);
+        if(cosThetaT < 0.0f){
+            Vec3f reflectDir = 2.0*(worldH%camera)*worldH - camera;
 
-            norm.GetOrthonormals(u, v);
+                        
+            si.mult = reflection.GetValue() * abs(reflectDir.Dot(worldH));
+            si.prob = specProb; 
+            si.lobe = Lobe::SPECULAR;
 
-            float phi = 2.0*Pi<float>() * phiOffset;
-            float cosTheta = pow(1 - thetaOffset, 1.0/(glossiness.GetValue() + 1.0));
+            dir = Normalize(reflectDir);
 
-            float sinTheta = sqrt(1.0 - pow(cosTheta, 2.0));
+            return true;
+        }
 
-            Vec3f localH = Vec3f(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);  
-            Vec3f worldH = (localH.x * u) + (localH.y * v) + (localH.z * norm);
-
-            Vec3f refractDir;
-
-            refractDir = -eta * camera - (sqrt(refractCosThetaTSquared)- eta*(camera % worldH))*worldH;
-
-            si.mult = sInfo.Eval(refraction);
-            si.prob = refractProb; 
-            si.lobe = Lobe::TRANSMISSION;
+        else{
+            refractDir = -eta*camera - ( sqrtf( cosThetaT) - eta*NdotV )*worldH ;
 
             dir = Normalize(refractDir);
 
+            si.mult = refraction.GetValue() * abs(dir.Dot(norm));
+            si.prob = refractProb; 
+            si.lobe = Lobe::TRANSMISSION;
+
+
             return true;
+            
         
+        }
     }
 
-    else{
-        return false;
-    }   
+
+    
+    return false;  
 }
 

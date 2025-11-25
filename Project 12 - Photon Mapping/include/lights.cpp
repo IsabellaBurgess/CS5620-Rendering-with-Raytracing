@@ -28,7 +28,7 @@ Color PointLight::Illuminate( ShadeInfo const &sInfo, Vec3f &dir ) const{
     Vec3f d = position - sInfo.P(); 
     dir = d.GetNormalized(); 
 
-    Vec3f u; 
+    Vec3f u;
     Vec3f v;
     dir.GetOrthonormals(u, v);
 
@@ -150,6 +150,7 @@ bool PointLight::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide) cons
 
     return false;
 }
+
 
 void  PointLight::RandomPhoton( RNG &rng, Ray &r, Color &c ) const {
     float randU = rng.RandomFloat();
