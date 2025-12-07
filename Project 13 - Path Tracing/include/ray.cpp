@@ -68,8 +68,8 @@ Color calculateRay::shootRay(int x, int y, Ray const &ray, HitInfo &hInfo, int s
 
         shadeInf.SetHit(ray, hInfo);
         shadeInf.SetPixelSample(sampleCount);
-        color = currentMat->Shade(shadeInf);
-        // color = Color(1, 200, 255);
+        // color = currentMat->Shade(shadeInf);
+        color = Color(1, 200, 255);
     }
 
     else{
@@ -82,7 +82,7 @@ Color calculateRay::shootRay(int x, int y, Ray const &ray, HitInfo &hInfo, int s
 
 
         // printf("background color is (%f, %f, %f)\n", color.r, color.b, color.g);
-        // color.SetBlack();
+        color.SetBlack();
     }
 
     return color;

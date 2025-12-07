@@ -11,18 +11,15 @@ using namespace cy;
 using namespace std;
 
 
-class Shadows : public ShadeInfo
+class Shadows : public SamplerInfo
 {
 public: 
-    Shadows( std::vector<Light*> const &lightList, TexturedColor const &environment, RNG &r ) : ShadeInfo(lightList, environment, r) {}
+    Shadows( std::vector<Light*> const &lightList, TexturedColor const &environment, RNG &r ) : SamplerInfo( r) {}
 
     // calculateRay const* renderer;
-    float TraceShadowRay( Ray const &ray, float t_max) const override;
     bool shadowRay(Node *node, Ray ray, HitInfo &hInfo);
 
-    Color TraceSecondaryRay( Ray const &ray, float &dist, bool reflection ) const override; 
 
-    bool CanBounce() const override;
 
 //kl
 

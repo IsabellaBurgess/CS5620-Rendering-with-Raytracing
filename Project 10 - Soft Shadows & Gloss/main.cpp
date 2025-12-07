@@ -51,12 +51,12 @@ float maxT = BIGFLOAT;
 int camOffset = 1;  
 int bounceNum =3;
 
-const int numThreads = 20 ;
+const int numThreads = 1 ;
 
 int minSampleCount = 8;
 int maxSampleCount = 64;
 float minShadowSamples = 4;
-float maxShadowSamples = 64;
+float maxShadowSamples = 8;
 float errorThreshold = 0.01;
 // const int numThreads = thread::hardware_concurrency();
 

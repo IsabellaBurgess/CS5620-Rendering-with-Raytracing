@@ -57,7 +57,7 @@ Color calculateRay::shootRay(int x, int y, Ray const &ray, HitInfo &hInfo, int s
         // printf("true\n");
             // printf("hit node: %s\n", hitInf.node->GetName());
         if(hInfo.light == true){
-            
+            printf("light\n");
             return Color(1, 1, 1);
         }  
         const Material *currentMat = hInfo.node->GetMaterial();

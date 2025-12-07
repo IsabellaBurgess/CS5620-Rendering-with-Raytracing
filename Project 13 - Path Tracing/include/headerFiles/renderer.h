@@ -3,7 +3,7 @@
 ///
 /// \file       renderer.h 
 /// \author     Cem Yuksel (www.cemyuksel.com)
-/// \version    12.0
+/// \version    13.0
 /// \date       October 25, 2025
 ///
 /// \brief Project source for CS 6620 - University of Utah.
@@ -162,6 +162,8 @@ protected:
 };
  
 //-------------------------------------------------------------------------------
+# ifdef LEGACY_SHADING_API
+//-------------------------------------------------------------------------------
  
 class ShadeInfo : public SamplerInfo
 {
@@ -192,6 +194,8 @@ protected:
     TexturedColor       const &env;     // environment
 };
  
+//-------------------------------------------------------------------------------
+#endif
 //-------------------------------------------------------------------------------
  
 class Renderer

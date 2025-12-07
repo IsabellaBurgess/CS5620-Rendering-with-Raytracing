@@ -266,7 +266,7 @@ public:
 class Material : public ItemBase, public DirSampler
 {
 public:
-    virtual Color Shade( ShadeInfo const &sInfo ) const=0;  // the main method that handles shading
+    virtual Color Shade( ShadeInfo const &sInfo, bool wasMC ) const=0;  // the main method that handles shading
     virtual Color Absorption         ( int mtlID=0 ) const { return Color(0,0,0); } // returns the absorption of the material
     virtual float IOR                ( int mtlID=0 ) const { return 1.0f; } // returns the refraction index of the material
     virtual bool  IsPhotonSurface    ( int mtlID=0 ) const { return true; } // if this method returns true, the photon will be stored

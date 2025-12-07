@@ -20,7 +20,7 @@ public:
     float TraceShadowRay( Ray const &ray, float t_max) const override;
     bool shadowRay(Node *node, Ray ray, HitInfo &hInfo);
 
-    Color TraceSecondaryRay( Ray const &ray, float &dist, bool reflection ) const override; 
+    Color TraceSecondaryRay( Ray const &ray, float &dist, bool reflection, bool montCarlo) const override; 
 
     bool CanBounce() const override;
 

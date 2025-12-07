@@ -65,7 +65,7 @@ protected:
 class MtlPhong : public MtlBasePhongBlinn
 {
 public:
-    Color Shade( ShadeInfo const &shadeInfo ) const override;
+    Color Shade( ShadeInfo const &shadeInfo, bool wasMC=false) const override;
     void SetViewportMaterial( int mtlID=0 ) const override; // used for OpenGL display
  
     bool GenerateSample( SamplerInfo const &sInfo, Vec3f &dir, Info &si ) const override;
@@ -76,7 +76,7 @@ public:
 class MtlBlinn : public MtlBasePhongBlinn
 {
 public:
-    Color Shade( ShadeInfo const &shadeInfo ) const override;
+    Color Shade( ShadeInfo const &shadeInfo, bool wasMC=false) const override;
     void SetViewportMaterial ( int mtlID=0 ) const override;    // used for OpenGL display
  
     bool GenerateSample( SamplerInfo const &sInfo, Vec3f &dir, Info &si ) const override;
@@ -103,7 +103,7 @@ public:
     void SetEmissionTexture     ( TextureMap *tex ) { emission     .SetTexture(tex); }
     void SetTransmittanceTexture( TextureMap *tex ) { transmittance.SetTexture(tex); }
  
-    Color Shade( ShadeInfo const &shadeInfo ) const override;
+    Color Shade( ShadeInfo const &shadeInfo, bool wasMC=false) const override;
     Color Absorption         ( int mtlID=0 ) const override { return absorption; }
     float IOR                ( int mtlID=0 ) const override { return ior;        }
     bool  IsPhotonSurface    ( int mtlID=0 ) const override { return baseColor.GetValue().Sum() > 0; }
@@ -128,7 +128,7 @@ class MultiMtl : public Material
 public:
     virtual ~MultiMtl() { for ( Material *m : mtls ) delete m; }
  
-    Color Shade( ShadeInfo const &sInfo ) const override { int m=sInfo.MaterialID(); return m<(int)mtls.size() ? mtls[m]->Shade(sInfo) : Color(1,1,1); }
+    Color Shade( ShadeInfo const &sInfo, bool wasMC=false ) const override { int m=sInfo.MaterialID(); return m<(int)mtls.size() ? mtls[m]->Shade(sInfo, wasMC=false) : Color(1,1,1); }
     Color Absorption         ( int mtlID=0 ) const override { return mtlID<(int)mtls.size() ? mtls[mtlID]->Absorption     (mtlID) : Material::Absorption     (mtlID); }
     float IOR                ( int mtlID=0 ) const override { return mtlID<(int)mtls.size() ? mtls[mtlID]->IOR            (mtlID) : Material::IOR            (mtlID); }
     bool  IsPhotonSurface    ( int mtlID=0 ) const override { return mtlID<(int)mtls.size() ? mtls[mtlID]->IsPhotonSurface(mtlID) : Material::IsPhotonSurface(mtlID); }

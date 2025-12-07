@@ -40,10 +40,14 @@ class Light;
 class Material;
 class Texture;
 class Node;
-class SamplerInfo;
 class ShadeInfo;
+class SamplerInfo;
 class RNG;
 class Loader;
+ 
+#ifdef LEGACY_SHADING_API
+class ShadeInfo;
+#endif
  
 template <class T> class ItemList;
  
@@ -159,7 +163,7 @@ public:
     void InitTransform() { tm.SetIdentity(); itm.SetIdentity(); }
  
     void Translate( Vec3f const &p )                   { Transform(Matrix34f::Translation(p)); }
-    void Rotate   ( Vec3f const &axis, float degrees ) { Transform(Matrix34f::Rotation(axis, Deg2Rad(degrees))); }
+    void Rotate   ( Vec3f const &axis, float degrees ) { Transform(Matrix34f::Rotation(axis,Deg2Rad(degrees))); }
     void Scale    ( Vec3f const &s )                   { Transform(Matrix34f::Scale(s)); }
     void Transform( Matrix34f const &m )               { tm=m*tm; itm=tm.GetInverse(); }
  
@@ -230,23 +234,29 @@ public:
  
     struct Info
     {
-        Color mult; // BSDF times the geometry term for materials
+        Color mult; // BSDF times the geometry term for materials; incoming light radiance for lights.
         float prob; // probability of generating the sample
-        Lobe  lobe; // the scattering lobe for materials
+        float dist; // the distance to trace a ray in the sample direction (distance to the light for lights, 0 for materials)
+        Lobe  lobe; // the scattering lobe for materials; Lobe::ALL for lights
  
-        void SetVoid() { mult.SetBlack(); prob=0.0f; lobe=Lobe::NONE; }
+        void SetVoid() { mult.SetBlack(); prob=0.0f; dist=0.0f; lobe=Lobe::NONE; }
     };
  
     // Generates a new direction sample and sets the corresponding sample information. Returns true if a sample is generated.
     virtual bool GenerateSample( SamplerInfo const &sInfo, Vec3f &dir, Info &si ) const { return false; }
+ 
+    // Set the light sample information for the given direction sample.
+    virtual void GetSampleInfo( SamplerInfo const &sInfo, Vec3f const &dir, Info &si ) const { si.SetVoid(); }
 };
  
 //-------------------------------------------------------------------------------
  
-class Light : public Object
+class Light : public Object, public DirSampler
 {
 public:
+#ifdef LEGACY_SHADING_API
     virtual Color Illuminate( ShadeInfo const &sInfo, Vec3f &dir ) const=0; // returns the light intensity and direction
+#endif
     virtual Color Radiance( SamplerInfo const &sInfo ) const { return Color(0,0,0); }   // Used for shading a hit point on the light
     virtual Color Intensity     () const { return Color(0.0f); }    // Returns the total power of the light. It can be used for importance sampling lights.
     virtual bool  IsAmbient     () const { return false; }
@@ -266,7 +276,9 @@ public:
 class Material : public ItemBase, public DirSampler
 {
 public:
+#ifdef LEGACY_SHADING_API
     virtual Color Shade( ShadeInfo const &sInfo ) const=0;  // the main method that handles shading
+#endif
     virtual Color Absorption         ( int mtlID=0 ) const { return Color(0,0,0); } // returns the absorption of the material
     virtual float IOR                ( int mtlID=0 ) const { return 1.0f; } // returns the refraction index of the material
     virtual bool  IsPhotonSurface    ( int mtlID=0 ) const { return true; } // if this method returns true, the photon will be stored

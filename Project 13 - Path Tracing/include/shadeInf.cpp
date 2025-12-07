@@ -24,20 +24,20 @@ extern TexturedColor env;
 extern int bounceNum;
 
 
-float Shadows::TraceShadowRay( Ray const &ray, float t_max) const {
+// float Shadows::TraceShadowRay( Ray const &ray, float t_max) const {
     
-    Ray rayCopy;
-    rayCopy.dir = ray.dir;
-    rayCopy.p = Vec3f(ray.p + (ray.dir * 0.0001));
+//     Ray rayCopy;
+//     rayCopy.dir = ray.dir;
+//     rayCopy.p = Vec3f(ray.p + (ray.dir * 0.0001));
 
-    if(rayCalculation.TraceShadowRay(ray, t_max, true))
-    {
-        return 0.0;
-    }
+//     if(rayCalculation.TraceShadowRay(ray, t_max, true))
+//     {
+//         return 0.0;
+//     }
 
-    return 1.0;
+//     return 1.0;
     
-}
+// }
 
 bool Shadows::shadowRay(Node *node, Ray ray, HitInfo &hInfo){
     bool hitTracker = false;
@@ -73,46 +73,46 @@ bool Shadows::shadowRay(Node *node, Ray ray, HitInfo &hInfo){
     return false;
 }
 
-Color Shadows::TraceSecondaryRay( Ray const &ray, float &dist, bool reflect) const
-{
-    HitInfo newHit;
-    newHit.Init();
-    Color newColor = Color(0, 0, 0);
+// Color Shadows::TraceSecondaryRay( Ray const &ray, float &dist, bool reflect) const
+// {
+//     HitInfo newHit;
+//     newHit.Init();
+//     Color newColor = Color(0, 0, 0);
 
-    bool hit = rayCalculation.TraceRay(ray, newHit, newHit.front);
+//     bool hit = rayCalculation.TraceRay(ray, newHit, newHit.front);
     
 
-        if(hInfo.light == true){
+//         if(hInfo.light == true){
             
-            return Color(1, 1, 1);
-        }
+//             return Color(1, 1, 1);
+//         }
     
-    if(hit == true && hInfo.node->GetNodeObj() != nullptr)
-    {
-        Shadows shade = *this;
-        shade.SetHit(ray, newHit);
-        shade.bounce++;
+//     if(hit == true && hInfo.node->GetNodeObj() != nullptr)
+//     {
+//         Shadows shade = *this;
+//         shade.SetHit(ray, newHit);
+//         shade.bounce++;
 
-        dist = newHit.z;
+//         dist = newHit.z;
 
-        newColor = newHit.node->GetMaterial()->Shade(shade);
-    }
+//         newColor = newHit.node->GetMaterial()->Shade(shade);
+//     }
     
-    else{
-        newColor = env.EvalEnvironment(ray.dir);
-    }
-    return newColor;
-} 
+//     else{
+//         newColor = env.EvalEnvironment(ray.dir);
+//     }
+//     return newColor;
+// } 
 
-bool Shadows::CanBounce() const
-{
-    if(bounce >= bounceNum){
-        return false;
-    }
+// bool Shadows::CanBounce() const
+// {
+//     if(bounce >= bounceNum){
+//         return false;
+//     }
 
-    else {
-        return true;
-    }
-}
+//     else {
+//         return true;
+//     }
+// }
 
 

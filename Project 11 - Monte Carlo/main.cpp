@@ -52,7 +52,7 @@ const int numThreads = 20 ;
 
 int camOffset = 1;  
 int bounceNum = 2;
-int montCarloBounceNum = 2; 
+int montCarloBounceNum = 1; 
 
 
 
@@ -61,7 +61,7 @@ int maxSampleCount = 8;
 float minShadowSamples = 4;
 float maxShadowSamples = 8;
 
-int montCarloSamples = 8;
+int montCarloSamples = 3;
 float errorThreshold = 0.01;
 
 calculateRay rayCalculation; 
@@ -71,7 +71,7 @@ RNG rng;
 
 int main (int argc, char** argv){
 
-    sceneRenderer.LoadScene("sceneFiles/cornellBox.xml");
+    sceneRenderer.LoadScene("sceneFiles/softShadowsTest.xml");
     ShowViewport(&sceneRenderer, false);
     return 0;
 }

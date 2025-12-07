@@ -174,44 +174,44 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo) const
 
         Color intensity = currentLight->Illuminate(shadeInfo, lightDir);
 
-        if(shadeInfo.CurrentBounce() < montCarloBounceNum){
-            for(int j = 0; j < montCarloSamples; j++){
-                float phiOffset = Halton(shadeInfo.CurrentPixelSample(), 2) + rng.RandomFloat();
-                float thetaOffset = Halton(shadeInfo.CurrentPixelSample(), 3) + rng.RandomFloat();
+        // if(shadeInfo.CurrentBounce() < montCarloBounceNum){
+        //     for(int j = 0; j < montCarloSamples; j++){
+        //         float phiOffset = Halton(shadeInfo.CurrentPixelSample(), 2) + rng.RandomFloat();
+        //         float thetaOffset = Halton(shadeInfo.CurrentPixelSample(), 3) + rng.RandomFloat();
 
-                Vec3f u = Vec3f(0, 0, 0); 
-                Vec3f v = Vec3f(0, 0, 0);
+        //         Vec3f u = Vec3f(0, 0, 0); 
+        //         Vec3f v = Vec3f(0, 0, 0);
 
-                norm.GetOrthonormals(u, v);
+        //         norm.GetOrthonormals(u, v);
 
-                if(phiOffset > 1.0){
-                    phiOffset = phiOffset - 1;
-                }
+        //         if(phiOffset > 1.0){
+        //             phiOffset = phiOffset - 1;
+        //         }
 
-                if(thetaOffset > 1.0){
-                    thetaOffset = thetaOffset - 1.0;
-                }
+        //         if(thetaOffset > 1.0){
+        //             thetaOffset = thetaOffset - 1.0;
+        //         }
 
-                float phi = (2.0*Pi<float>() * phiOffset);
-                float cosTheta =  sqrt(thetaOffset);
+        //         float phi = (2.0*Pi<float>() * phiOffset);
+        //         float cosTheta =  sqrt(thetaOffset);
 
-                float sinTheta = sqrt(1.0 - (cosTheta * cosTheta));
+        //         float sinTheta = sqrt(1.0 - (cosTheta * cosTheta));
 
-                Vec3f localDir = Vec3f(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);  
-                Vec3f worldDir = (localDir.x * u) + (localDir.y * v) + (localDir.z * norm);
+        //         Vec3f localDir = Vec3f(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);  
+        //         Vec3f worldDir = (localDir.x * u) + (localDir.y * v) + (localDir.z * norm);
 
-                Ray montCarloRay = Ray(hitPos, worldDir);
+        //         Ray montCarloRay = Ray(hitPos, worldDir);
 
-                float dist = BIGFLOAT;
+        //         float dist = BIGFLOAT;
 
-                ambientColor += (shadeInfo.TraceSecondaryRay(montCarloRay, dist))*baseColor ; 
-            }
+        //         ambientColor += (shadeInfo.TraceSecondaryRay(montCarloRay, dist))*baseColor ; 
+        //     }
 
-            ambientColor = (ambientColor/montCarloSamples);
-        }
-        // if(currentLight->IsAmbient()){
-        //     ambientColor += intensity * baseColor;
+        //     ambientColor = (ambientColor/montCarloSamples);
         // }
+        if(currentLight->IsAmbient()){
+            ambientColor += intensity * baseColor;
+        }
 
 
         

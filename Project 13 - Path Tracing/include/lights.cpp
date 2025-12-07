@@ -24,85 +24,85 @@ extern float maxShadowSamples;
 
 extern int photonCount;
 
-Color PointLight::Illuminate( ShadeInfo const &sInfo, Vec3f &dir ) const{    
-    Vec3f d = position - sInfo.P(); 
-    dir = d.GetNormalized(); 
+// Color PointLight::Illuminate( ShadeInfo const &sInfo, Vec3f &dir ) const{    
+//     Vec3f d = position - sInfo.P(); 
+//     dir = d.GetNormalized(); 
 
-    Vec3f u;
-    Vec3f v;
-    dir.GetOrthonormals(u, v);
+//     Vec3f u;
+//     Vec3f v;
+//     dir.GetOrthonormals(u, v);
 
     
-    float shadowValue = 0;
+//     float shadowValue = 0;
 
-    int hitsFound = 0;
-    int totalSamples = maxShadowSamples;
-    Vec3f distance = Vec3f(1, 1, 1);
+//     int hitsFound = 0;
+//     int totalSamples = maxShadowSamples;
+//     Vec3f distance = Vec3f(1, 1, 1);
 
-    for(int i = 0; i < maxShadowSamples; i++)
-    {
-        float ranX = Halton(i, 2) + rng.RandomFloat();
-        float ranY = Halton(i, 3) + rng.RandomFloat();
+//     for(int i = 0; i < maxShadowSamples; i++)
+//     {
+//         float ranX = Halton(i, 2) + rng.RandomFloat();
+//         float ranY = Halton(i, 3) + rng.RandomFloat();
 
-        float ranRad = Halton(i, 5) + rng.RandomFloat();
-        float ranAng = Halton(i, 7) + rng.RandomFloat();
+//         float ranRad = Halton(i, 5) + rng.RandomFloat();
+//         float ranAng = Halton(i, 7) + rng.RandomFloat();
 
-        if(ranRad > 1){
-            ranRad = ranRad - 1;
-        }
+//         if(ranRad > 1){
+//             ranRad = ranRad - 1;
+//         }
 
-        if(ranAng > 1){
-            ranAng = ranAng - 1;
-        }
+//         if(ranAng > 1){
+//             ranAng = ranAng - 1;
+//         }
 
-        if(ranX > 1){
-            ranX = ranX - 1;
-        }
+//         if(ranX > 1){
+//             ranX = ranX - 1;
+//         }
 
-        if(ranY > 1){
-            ranY = ranY - 1;
-        }
+//         if(ranY > 1){
+//             ranY = ranY - 1;
+//         }
 
-        float radius = sqrt(ranX) * size;
+//         float radius = sqrt(ranX) * size;
 
-        float angle = 2.0*Pi<float>() * ranY;
+//         float angle = 2.0*Pi<float>() * ranY;
 
-        float offsetU = radius * cos(angle);
-        float offsetV = radius * sin(angle);
+//         float offsetU = radius * cos(angle);
+//         float offsetV = radius * sin(angle);
 
-        Vec3f newPos = position + (u * offsetU) + (v * offsetV);
-        Vec3f newDir = newPos - sInfo.P(); 
+//         Vec3f newPos = position + (u * offsetU) + (v * offsetV);
+//         Vec3f newDir = newPos - sInfo.P(); 
 
-        Vec3f lightDir = newDir.GetNormalized();
-        // newDir = newDir.GetNormalized();
+//         Vec3f lightDir = newDir.GetNormalized();
+//         // newDir = newDir.GetNormalized();
 
-        float currentShadowValue = sInfo.TraceShadowRay(lightDir, (float) newDir.Length());
+//         float currentShadowValue = sInfo.TraceShadowRay(lightDir, (float) newDir.Length());
 
-        if(currentShadowValue > 0){
-            hitsFound++;
-        }
-        shadowValue += currentShadowValue;
+//         if(currentShadowValue > 0){
+//             hitsFound++;
+//         }
+//         shadowValue += currentShadowValue;
 
-        if(i == minShadowSamples ){
-            if(hitsFound == minShadowSamples || hitsFound == 0){
-                totalSamples = minShadowSamples;        
+//         if(i == minShadowSamples ){
+//             if(hitsFound == minShadowSamples || hitsFound == 0){
+//                 totalSamples = minShadowSamples;        
       
-                break;
-            }
-        }
+//                 break;
+//             }
+//         }
 
         
-    }
+//     }
 
-    if(attenuation > 0){
-        distance = (position - sInfo.P());
+//     if(attenuation > 0){
+//         distance = (position - sInfo.P());
 
-        return (intensity * (float) ((float) shadowValue/ (float) totalSamples))/distance.LengthSquared(); 
-    }  
+//         return (intensity * (float) ((float) shadowValue/ (float) totalSamples))/distance.LengthSquared(); 
+//     }  
 
-    return (intensity * (float) ((float) shadowValue/ (float) totalSamples)); 
+//     return (intensity * (float) ((float) shadowValue/ (float) totalSamples)); 
 
-}
+// }
 
 bool PointLight::IntersectRay( Ray const &ray, HitInfo &hInfo, int hitSide) const{
 //Quadratic equation info
@@ -191,4 +191,12 @@ void  PointLight::RandomPhoton( RNG &rng, Ray &r, Color &c ) const {
     r.dir = worldDir;
 
     c = (intensity * 4.0f * Pi<float>() * size * size)/photonCount;
+}
+
+bool PointLight::GenerateSample(SamplerInfo const &sInfo, Vec3f &dir, Info &si) const{
+    return false;
+}
+
+void PointLight::GetSampleInfo( SamplerInfo const &sInfo, Vec3f const &dir, Info &si ) const{
+    
 }

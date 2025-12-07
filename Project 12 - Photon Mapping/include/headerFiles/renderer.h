@@ -182,8 +182,8 @@ public:
     // Traces a ray and returns the shaded color at the hit point.
     // It also sets t to the distance to the hit point, if a front is found.
     // if a back hit is found, dist should be set to zero.
-    virtual Color TraceSecondaryRay( Ray   const &ray, float &dist, bool reflection=true ) const { dist=BIGFLOAT; return Color(0,0,0); }
-    virtual Color TraceSecondaryRay( Vec3f const &dir, float &dist, bool reflection=true ) const { return TraceSecondaryRay(Ray(P(),dir),dist,reflection); }
+    virtual Color TraceSecondaryRay( Ray   const &ray, float &dist, bool reflection=true, bool montCarlo=true) const { dist=BIGFLOAT; return Color(0,0,0); }
+    virtual Color TraceSecondaryRay( Vec3f const &dir, float &dist, bool reflection=true, bool montCarlo=true ) const { return TraceSecondaryRay(Ray(P(),dir),dist,reflection); }
  
     virtual bool SkipPhotonLightSpecular() const { return false; }
  

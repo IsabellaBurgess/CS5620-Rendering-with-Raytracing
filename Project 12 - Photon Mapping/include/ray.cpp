@@ -29,7 +29,6 @@ extern LightList lightList;
 extern int bounceNum;
 extern TexturedColor background;
 extern TexturedColor env;
-// extern PhotonMap *photonMap;
 
 
 extern float *zBuf;
@@ -68,7 +67,7 @@ Color calculateRay::shootRay(int x, int y, Ray const &ray, HitInfo &hInfo, int s
 
         shadeInf.SetHit(ray, hInfo);
         shadeInf.SetPixelSample(sampleCount);
-        color = currentMat->Shade(shadeInf);
+        color = currentMat->Shade(shadeInf, false);
         // color = Color(1, 200, 255);
     }
 
@@ -91,6 +90,13 @@ Color calculateRay::shootRay(int x, int y, Ray const &ray, HitInfo &hInfo, int s
 bool calculateRay::TraceRay(Ray const &ray, HitInfo &hInfo, int hitSide) const
 {
     bool hitTracker = rayCalculation.treeTraversal(&rootNode, ray, hInfo);
+    
+    for(int i = 0; i < lightList.size(); i++){
+        if(lightList[i]->IsRenderable()){
+            (lightList[i]->IntersectRay(ray, hInfo, hitSide));
+                // hitTracker = true;
+        }
+    }
     return hitTracker;
 }
 
@@ -148,8 +154,5 @@ bool calculateRay::TraceShadowRay(Ray const &ray, float t_max, int hitSide) cons
     return hit;
 }
 
-// PhotonMap const * GetPhotonMap(){
-//     return  photonMap;
-// }
 
 //Shadows and shade info

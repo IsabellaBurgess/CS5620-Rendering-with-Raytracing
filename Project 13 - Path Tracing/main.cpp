@@ -317,7 +317,7 @@ void RayTracer::fillPhotonMap(PhotonMap* map, PhotonMap* caustics){
             // printf("ray position: [%f, %f, %f]\n", currentRay.dir.x, currentRay.dir.y, currentRay.dir.z);
             if(rayCalculation.TraceRay(currentRay, hitInf, HIT_FRONT_AND_BACK)){
 
-                ShadeInfo shadeInf(lightList, env, rng);
+                SamplerInfo shadeInf(rng);
                 shadeInf.SetHit(currentRay, hitInf);
 
                 DirSampler::Info info;
@@ -356,7 +356,7 @@ void RayTracer::bouncePhoton(PhotonMap* map, PhotonMap* caustics, DirSampler::In
     if(rayCalculation.TraceRay(ray, hitInf, hitInf.front)){
                         // printf("ray position after: [%f, %f, %f]\n", hitInf.p.x, hitInf.p.y, hitInf.p.z);
 
-        ShadeInfo shadeInf(lightList, env, rng);
+        SamplerInfo shadeInf( rng);
         shadeInf.SetHit(ray, hitInf);
 
         if(map->RemainingSpace() == 0){
