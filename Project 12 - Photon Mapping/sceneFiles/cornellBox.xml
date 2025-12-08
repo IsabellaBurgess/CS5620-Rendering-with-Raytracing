@@ -64,7 +64,7 @@
     </material>
     <material type="blinn" name="refractive">
       <diffuse value="0"/>
-      <specular value="0.1"/>
+      <specular value="0"/>
       <glossiness value="1024"/>
       <refraction value="1" index="1.52"/>
     </material>

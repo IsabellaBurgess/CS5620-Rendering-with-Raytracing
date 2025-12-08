@@ -64,21 +64,21 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo, bool wasMC) const
 
     Color irradianceCaustics = Color(0,0,0);
     Vec3f causticDir = Vec3f(0, 0, 0);
-            sceneRenderer.map->EstimateIrradiance<100, PHOTONMAP_FILTER_CONSTANT>(irradianceColor, photonDir, 1.0f, hitPos, norm, 1.0f);
-                sceneRenderer.caustics->EstimateIrradiance<20, PHOTONMAP_FILTER_LINEAR>(irradianceCaustics, causticDir, 0.1f, hitPos, norm, 1.0f);
+  
 
 
+    if(shadeInfo.CurrentBounce() >= montCarloBounceNum){
+        if(wasMC == true){
+            // printf("photon\n");
+            sceneRenderer.map->EstimateIrradiance<100, PHOTONMAP_FILTER_CONSTANT>(irradianceColor, photonDir, 5.0f, hitPos, norm, 1.0f);
 
-    // if(shadeInfo.CurrentBounce() >= montCarloBounceNum){
-    //     if(wasMC == true){
-    //         // printf("photon\n");
+        }
+        else{
+            // printf("caustic\n");
+            sceneRenderer.caustics->EstimateIrradiance<100, PHOTONMAP_FILTER_LINEAR>(irradianceCaustics, causticDir, 1.0f, hitPos, norm, 0.25f);
 
-    //     }
-    //     else{
-    //         // printf("caustic\n");
-
-    //     }
-    // }
+        }
+    }
 
     if(refractValue != Color(0, 0, 0) && shadeInfo.CanBounce()){
 
@@ -122,12 +122,8 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo, bool wasMC) const
 
             Vec3f localH = Vec3f(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);  
             Vec3f worldH = (localH.x * u) + (localH.y * v) + (localH.z * norm);
-        
-        float NdotV = camera.Dot(worldH);
 
-        worldH.Normalize();
             Vec3f refractDir;
-        float cosThetaT = (1.0 - ((eta * eta))*(1.0- NdotV * NdotV));
 
             refractDir = -eta * camera - (sqrt(refractCosThetaTSquared)- eta*(camera % worldH))*worldH;
                 // printf("front hit 1\n");
@@ -145,12 +141,12 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo, bool wasMC) const
             refraction = shadeInfo.TraceSecondaryRay(refractRay, dist, false);
 
             
-            // if(!shadeInfo.IsFront()){
-            //     refraction.r = refraction.r*exp(-absorbValue.r*dist);
-            //     refraction.g = refraction.g*exp(-absorbValue.g*dist);
-            //     refraction.b = refraction.b*exp(-absorbValue.b*dist);
+            if(!shadeInfo.IsFront()){
+                refraction.r = refraction.r*exp(-absorbValue.r*dist);
+                refraction.g = refraction.g*exp(-absorbValue.g*dist);
+                refraction.b = refraction.b*exp(-absorbValue.b*dist);
 
-            // }
+            }
 
             //change refraction to the current texture point
             refraction = refraction * refractValue;
@@ -197,7 +193,7 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo, bool wasMC) const
         //thats it thats the only difference. check that bounce number is > 0 
         float dist = BIGFLOAT;
 
-        reflection = shadeInfo.TraceSecondaryRay(reflectRay, dist) * reflectValue;
+        reflection = shadeInfo.TraceSecondaryRay(reflectRay, dist, false) * reflectValue;
         // return reflectColor;
     }
 
@@ -238,11 +234,16 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo, bool wasMC) const
                 float dist = BIGFLOAT;
 
                 ambientColor += (shadeInfo.TraceSecondaryRay(montCarloRay, dist, true))*baseColor ; 
-
             }
-            ambientColor = ambientColor/montCarloSamples;
-        }
 
+            ambientColor = (ambientColor/montCarloSamples);
+        }
+        else {
+
+
+
+  
+        }
         // if(currentLight->IsAmbient()){
         //     ambientColor += intensity * baseColor;
         // }
@@ -269,14 +270,14 @@ Color MtlBlinn::Shade(ShadeInfo const &shadeInfo, bool wasMC) const
         
     }
 
-    // printf("irradiance Color [%f, %f, %f]\n", irradianceCaustics.r, irradianceCaustics.g, irradianceCaustics.b);
+    // printf("irradiance Color [%f, %f, %f]\n", irradianceColor.r, irradianceColor.g, irradianceColor.b);
     // blinnColor =  blinnColor ;
     
     // printf("Blinn color = [%f, %f, %f]\n", blinnColor.r, blinnColor.g, blinnColor.b);
 
-    Color indirectColor = shadeInfo.Eval(diffuse) *  (irradianceColor/M_PI) ;
-    Color causticColor = shadeInfo.Eval(diffuse) *  irradianceCaustics/M_PI;
-    return (blinnColor  + reflection + refraction  + indirectColor + causticColor + emission.GetValue()) ;
+    Color indirectColor = (shadeInfo.Eval(diffuse)) * (( irradianceColor/M_PI)) ;
+    Color causticColor = (shadeInfo.Eval(diffuse)) * (( irradianceCaustics/M_PI));
+    return (blinnColor  + reflection + refraction + indirectColor + ambientColor + causticColor + emission.GetValue()) ;
     // return ambientColor + emission.GetValue();
 }
 
@@ -307,7 +308,10 @@ bool MtlBlinn::GenerateSample( SamplerInfo const &sInfo, Vec3f &dir, Info &si ) 
     Vec3f lightDir = Vec3f(0,0,0 );
     // float lightIntensity = 1.0;
 
- 
+    Color blinnColor = Color(0.0,0.0,0.0);
+    
+    Color absorbValue = this->absorption;
+
     //this!! this is what needs to get updated and changed
     // TexturedColor baseTex = this->Diffuse();
 
@@ -398,34 +402,29 @@ bool MtlBlinn::GenerateSample( SamplerInfo const &sInfo, Vec3f &dir, Info &si ) 
         Vec3f localH = Vec3f(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);  
         Vec3f worldH = (localH.x * u) + (localH.y * v) + (localH.z * norm);
         
-        Vec3f worldH_i = worldH;
-        worldH.Normalize();
-                float NdotV = camera.Dot(worldH);
+        float NdotV = camera.Dot(worldH);
 
+        worldH.Normalize();
         Vec3f refractDir;
         if(!sInfo.IsFront())
         {
-            
-            // Vec3 norm = -norm;
+            Vec3f norm = -norm;
             eta = ior/1;
             worldH = -worldH;
         }
-        float refractCosThetaO = pow((camera % norm),2.0);
 
-        float refractCosThetaTSquared = 1.0 - (pow(eta, 2.0)*(1.0-(refractCosThetaO)));
 
         float cosThetaT = (1.0 - ((eta * eta))*(1.0- NdotV * NdotV));
 
-        if(cosThetaT <= 0.0f){
-
+        if(cosThetaT < 0.0f){
             Vec3f reflectDir = 2.0*(worldH%camera)*worldH - camera;
 
-            dir = Normalize(reflectDir);
-      
-            si.mult = reflection.GetValue() * abs(dir.Dot(worldH_i));
+                        
+            si.mult = reflection.GetValue() * abs(reflectDir.Dot(worldH));
             si.prob = specProb; 
             si.lobe = Lobe::SPECULAR;
 
+            dir = Normalize(reflectDir);
 
             return true;
         }
@@ -435,7 +434,7 @@ bool MtlBlinn::GenerateSample( SamplerInfo const &sInfo, Vec3f &dir, Info &si ) 
 
             dir = Normalize(refractDir);
 
-            si.mult = refraction.GetValue() ;
+            si.mult = refraction.GetValue() * abs(dir.Dot(norm));
             si.prob = refractProb; 
             si.lobe = Lobe::TRANSMISSION;
 

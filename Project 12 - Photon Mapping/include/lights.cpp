@@ -22,7 +22,7 @@ extern float shadowBias;
 extern float minShadowSamples;
 extern float maxShadowSamples;
 
-extern int photonCount;
+
 
 Color PointLight::Illuminate( ShadeInfo const &sInfo, Vec3f &dir ) const{    
     Vec3f d = position - sInfo.P(); 
@@ -188,7 +188,7 @@ void  PointLight::RandomPhoton( RNG &rng, Ray &r, Color &c ) const {
     Vec3f localDir = Vec3f(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);  
     Vec3f worldDir = (localDir.x * u) + (localDir.y * v) + (localDir.z * norm);
 
-    r.dir = worldDir;
+    r.dir = Normalize(worldDir);
 
-    c = (intensity * 4.0f * Pi<float>() * size * size)/photonCount;
+    c = ((intensity * 4.0f * Pi<float>() * size * size));
 }
