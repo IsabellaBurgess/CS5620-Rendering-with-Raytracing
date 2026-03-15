@@ -1,0 +1,352 @@
+
+
+<xml>
+  <scene>
+    <!-- Objects -->
+    <object name="box">
+      <translate x="0" y="0" z="0.9"/>
+      <object type="plane" name="WallBottom" material="floor">
+        <scale value="180"/>
+      </object>
+    </object>
+    <object name = "teapots">
+      <object name="line 0">
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="15.0" y="-3.67394039744206e-15" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="25.48173102387228" y="-5.1654026006716025" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="34.07925677810674" y="-14.408478665420088" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="39.61610951566456" y="-27.102838722961692" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="41.10569585148276" y="-42.324009363071845" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="37.82116141076977" y="-58.90296893655276" z="1"/>
+        </object>
+        <rotate angle = "36" z = "1"/>
+      </object>
+
+      <object name="line 1">
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="15.0" y="-3.67394039744206e-15" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="25.48173102387228" y="-5.1654026006716025" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="34.07925677810674" y="-14.408478665420088" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="39.61610951566456" y="-27.102838722961692" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="41.10569585148276" y="-42.324009363071845" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="37.82116141076977" y="-58.90296893655276" z="1"/>
+        </object>
+        <rotate angle = "72" z = "1"/>
+      </object>
+
+      <object name="line 2">
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="15.0" y="-3.67394039744206e-15" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="25.48173102387228" y="-5.1654026006716025" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="34.07925677810674" y="-14.408478665420088" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="39.61610951566456" y="-27.102838722961692" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="41.10569585148276" y="-42.324009363071845" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="37.82116141076977" y="-58.90296893655276" z="1"/>
+        </object>
+        <rotate angle = "108" z = "1"/>
+      </object>
+
+      <object name="line 3">
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="15.0" y="-3.67394039744206e-15" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="25.48173102387228" y="-5.1654026006716025" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="34.07925677810674" y="-14.408478665420088" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="39.61610951566456" y="-27.102838722961692" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="41.10569585148276" y="-42.324009363071845" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="37.82116141076977" y="-58.90296893655276" z="1"/>
+        </object>
+        <rotate angle = "144" z = "1"/>
+      </object>
+
+      <object name="line 4">
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="15.0" y="-3.67394039744206e-15" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="25.48173102387228" y="-5.1654026006716025" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="34.07925677810674" y="-14.408478665420088" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="39.61610951566456" y="-27.102838722961692" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="41.10569585148276" y="-42.324009363071845" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="37.82116141076977" y="-58.90296893655276" z="1"/>
+        </object>
+        <rotate angle = "180" z = "1"/>
+      </object>
+
+      <object name="line 5">
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="15.0" y="-3.67394039744206e-15" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="25.48173102387228" y="-5.1654026006716025" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="34.07925677810674" y="-14.408478665420088" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="39.61610951566456" y="-27.102838722961692" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="41.10569585148276" y="-42.324009363071845" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="37.82116141076977" y="-58.90296893655276" z="1"/>
+        </object>
+        <rotate angle = "216" z = "1"/>
+      </object>
+
+      <object name="line 6">
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="15.0" y="-3.67394039744206e-15" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="25.48173102387228" y="-5.1654026006716025" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="34.07925677810674" y="-14.408478665420088" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="39.61610951566456" y="-27.102838722961692" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="41.10569585148276" y="-42.324009363071845" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="37.82116141076977" y="-58.90296893655276" z="1"/>
+        </object>
+        <rotate angle = "252" z = "1"/>
+      </object>
+
+      <object name="line 7">
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="15.0" y="-3.67394039744206e-15" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="25.48173102387228" y="-5.1654026006716025" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="34.07925677810674" y="-14.408478665420088" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="39.61610951566456" y="-27.102838722961692" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="41.10569585148276" y="-42.324009363071845" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="37.82116141076977" y="-58.90296893655276" z="1"/>
+        </object>
+        <rotate angle = "288" z = "1"/>
+      </object>
+
+      <object name="line 8">
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="15.0" y="-3.67394039744206e-15" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="25.48173102387228" y="-5.1654026006716025" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="34.07925677810674" y="-14.408478665420088" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="39.61610951566456" y="-27.102838722961692" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="41.10569585148276" y="-42.324009363071845" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="37.82116141076977" y="-58.90296893655276" z="1"/>
+        </object>
+        <rotate angle = "324" z = "1"/>
+      </object>
+
+      <object name="line 9">
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="15.0" y="-3.67394039744206e-15" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="25.48173102387228" y="-5.1654026006716025" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="34.07925677810674" y="-14.408478665420088" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="39.61610951566456" y="-27.102838722961692" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="41.10569585148276" y="-42.324009363071845" z="1"/>
+        </object>
+        <object type="obj" name="sceneFiles/objFiles/teapot.obj" material="whiteMat">
+          <scale value="0.3"/>
+          <translate x="37.82116141076977" y="-58.90296893655276" z="1"/>
+        </object>
+        <rotate angle = "360" z = "1"/>
+      </object>
+
+    </object>
+
+    <!-- Materials -->
+    <material type="blinn" name="floor">
+      <diffuse  r="0.4" g="0.4" b="0.4" value="0.7"/>
+      <specular value="0"/>
+    </material>
+    <material type="blinn" name="whiteMat">
+      <diffuse  r="1" g="1" b="1" value="0.7"/>
+      <specular value="0"/>
+    </material>
+    <material type="blinn" name="reflective">
+      <diffuse value="0"/>
+      <specular value="0.9"/>
+      <glossiness value="128"/>
+      <reflection value="0.9"/>
+    </material>
+    <material type="blinn" name="refractive">
+      <diffuse value="0"/>
+      <specular value="0"/>
+      <glossiness value="1024"/>
+      <refraction value="1" index="1.52"/>
+    </material>
+    <material type="blinn" name="smooth">
+      <diffuse value="0.7"/>
+      <specular value="0.3"/>
+      <glossiness value="64"/>
+    </material>
+ 
+    <!-- Lights -->
+
+    <light type="point" name="redLight">
+      <intensity value="600" r="1" g="0" b="0"/>
+      <position x="-4" y="-2" z="5"/>
+      <size value="2"/>
+      <attenuation value="1"/>
+    </light>
+    <light type="point" name="greenLight">
+      <intensity value="600" r="0" g="1" b="0"/>
+      <position x="0" y="4" z="5"/>
+      <size value="2"/>
+      <attenuation value="1"/>
+    </light>
+    <light type="point" name="blueLight">
+      <intensity value="600" r="0" g="0" b="1"/>
+      <position x="4" y="-2" z="5"/>
+      <size value="2"/>
+      <attenuation value="1"/>
+    </light>
+  </scene>
+ 
+  <camera gamma="sRGB">
+    <position x="0" y="-10" z="150"/>
+    <target x="0" y="0" z="-1"/>
+    <up x="0" y="0" z="1"/>
+    <fov value="30"/>
+		<width value="1280"/>
+		<height value="720"/>
+  </camera>
+</xml>
