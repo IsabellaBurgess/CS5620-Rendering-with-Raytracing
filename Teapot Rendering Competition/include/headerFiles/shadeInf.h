@@ -1,4 +1,6 @@
- 
+// Isabella Burgess
+// CS 6620 - Rendering with Ray Tracing
+
 #ifndef _SHADE_INF_HEADER_
 #define _SHADE_INF_HEADER_
 

@@ -1,4 +1,5 @@
-// Isabella Burgess - u1408202
+// Isabella Burgess
+// CS 6620 - Rendering with Ray Tracing
 
 #define GLUT_DISABLE_ATEXIT_HACK
 

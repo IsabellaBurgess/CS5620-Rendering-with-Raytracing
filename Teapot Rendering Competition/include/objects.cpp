@@ -1,3 +1,6 @@
+// Isabella Burgess
+// CS 6620 - Rendering with Ray Tracing
+
 #include "headerFiles/objects.h"
 #include "headerFiles/xmlload.h"
 #include "cy/cyMatrix.h"

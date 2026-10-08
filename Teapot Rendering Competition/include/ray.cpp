@@ -1,3 +1,6 @@
+// Isabella Burgess
+// CS 6620 - Rendering with Ray Tracing
+
 #include <iostream>
 #include <thread>
 #include <GL/glew.h>

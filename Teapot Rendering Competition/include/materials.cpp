@@ -1,3 +1,6 @@
+// Isabella Burgess
+// CS 6620 - Rendering with Ray Tracing
+
 #include "headerFiles/materials.h"
 #include "headerFiles/renderer.h"
 #include "headerFiles/ray.h"

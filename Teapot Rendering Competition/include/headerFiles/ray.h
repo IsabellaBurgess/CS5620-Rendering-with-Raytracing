@@ -1,3 +1,6 @@
+// Isabella Burgess
+// CS 6620 - Rendering with Ray Tracing
+
 #ifndef _RAY_GENERATION_
 #define _RAY_GENERATION_
 
