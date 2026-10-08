@@ -24,18 +24,16 @@
 #include "include/headerFiles/renderer.h"
 #include "include/headerFiles/rng.h"
 
-
 #include "include/headerFiles/ray.h"
 using namespace std;
 
 Camera cam;
 Color24 *pixels;
 Node rootNode;
-MaterialList matList; 
+MaterialList matList;
 LightList lightList;
 TexturedColor background;
 TexturedColor env;
-
 
 float *zBuf;
 int *sampleCount;
@@ -51,24 +49,25 @@ float maxT = BIGFLOAT;
 int camOffset = 1;
 int bounceNum = 4;
 
-const int numThreads = 20 ;
+const int numThreads = 20;
 int minSampleCount = 4;
 int maxSampleCount = 32;
-float errorThreshold = 0.001;
+float errorThreshold = 0.01;
 // const int numThreads = thread::hardware_concurrency();
 
-calculateRay rayCalculation; 
+calculateRay rayCalculation;
 RayTracer sceneRenderer;
 
-
-int main (int argc, char** argv){
+int main(int argc, char **argv)
+{
 
     sceneRenderer.LoadScene("sceneFiles/filledTeapot.xml");
     ShowViewport(&sceneRenderer, false);
     return 0;
 }
 
-void RayTracer::BeginRender(){
+void RayTracer::BeginRender()
+{
 
     // printf("in begin render\n");
     scene = GetScene();
@@ -77,135 +76,127 @@ void RayTracer::BeginRender(){
     zBuf = sceneImage.GetZBuffer();
     sampleCount = sceneImage.GetSampleCount();
 
+    thread t([&]
+             {
+                 matList = scene.materials;
+                 lightList = scene.lights;
+                 env = scene.environment;
+                 background = scene.background;
 
-    thread t([&]{
+                 cam = GetCamera();
+                 rootNode = scene.rootNode;
 
-        matList = scene.materials;
-        lightList = scene.lights;
-        env = scene.environment;
-        background = scene.background;
+                 Vec3f position = cam.pos;
 
-        cam = GetCamera();
-        rootNode = scene.rootNode;
+                 imageWidth = sceneImage.GetWidth();
+                 imageHeight = sceneImage.GetHeight();
 
-        Vec3f position = cam.pos;
+                 float fov = cam.fov * (M_PI / 180);
 
-        imageWidth = sceneImage.GetWidth();
-        imageHeight = sceneImage.GetHeight();
+                 wsHeight = 2.0 * camOffset * (tan(fov / 2.0));
+                 wsWidth = wsHeight * (imageWidth / imageHeight);
 
-        float fov = cam.fov*(M_PI/180);
+                 printf("w = %f, h = %f\n", wsWidth, wsHeight);
 
-        wsHeight = 2.0*camOffset*(tan(fov/2.0));
-        wsWidth = wsHeight*(imageWidth/imageHeight);
+                 // Values used for world space conversion
 
-        printf("w = %f, h = %f\n", wsWidth, wsHeight);
+                 Vec3f wsY = Vec3f(cam.up);
+                 Vec3f wsZ = Vec3f(cam.dir);
+                 Vec3f wsX = Vec3f(wsZ.Cross(wsY));
 
-        //Values used for world space conversion
+                 Matrix3f testMat = Matrix3f(wsX, wsY, wsZ);
+                 testMat = testMat.GetTranspose();
 
-        Vec3f wsY = Vec3f(cam.up);
-        Vec3f wsZ = Vec3f(cam.dir);
-        Vec3f wsX = Vec3f(wsZ.Cross(wsY));
+                 wsTransMatrix.SetColumn(0, Vec4f(wsX, 0));
+                 wsTransMatrix.SetColumn(1, Vec4f(wsY, 0));
+                 wsTransMatrix.SetColumn(2, Vec4f(-wsZ, 0));
+                 wsTransMatrix.SetColumn(3, Vec4f(cam.pos, 1));
 
-        Matrix3f testMat = Matrix3f(wsX, wsY, wsZ);
-        testMat = testMat.GetTranspose();
+                 atomic<int> nextPixel{0};
+                 std::vector<std::thread> threads;
+                 threads.reserve(numThreads);
 
-        wsTransMatrix.SetColumn(0, Vec4f(wsX,0));
-        wsTransMatrix.SetColumn(1, Vec4f(wsY,0));
-        wsTransMatrix.SetColumn(2, Vec4f(-wsZ,0));
-        wsTransMatrix.SetColumn(3, Vec4f(cam.pos,1));
+                 int pixelIndex = 0;
+                 auto trace = [&]
+                 {
+                     while (true)
+                     {
+                         const int pixelIndex = nextPixel.fetch_add(1, std::memory_order_relaxed);
 
-        
-        atomic<int> nextPixel{0}; 
-        std::vector<std::thread> threads;
-        threads.reserve(numThreads);
+                         if (renderImage.IsRenderDone())
+                         {
+                             break;
+                         }
 
+                         int x = pixelIndex % (int)imageWidth;
+                         int y = pixelIndex / imageWidth;
 
-        int pixelIndex = 0;
-        auto trace = [&] 
-        {
-            while(true)
-            {
-                const int pixelIndex = nextPixel.fetch_add(1, std::memory_order_relaxed);
+                         Color S1 = Color(0, 0, 0);
+                         Vec3f S2 = Vec3f(0.0, 0.0, 0.0);
+                         HitInfo hitInf = HitInfo();
 
-                if(renderImage.IsRenderDone())
-                {
-                    break;
-                }
-                
-                int x = pixelIndex%(int)imageWidth;
-                int y = pixelIndex/imageWidth;
+                         float errorR = BIGFLOAT;
+                         float errorG = BIGFLOAT;
+                         float errorB = BIGFLOAT;
 
-                Color S1 = Color(0, 0, 0);
-                Vec3f S2 = Vec3f(0.0, 0.0, 0.0);
-                HitInfo hitInf = HitInfo();
+                         // initalRays(pixelIndex, wsTransMatrix);
+                         int finalSampleCount = 0;
+                         while (errorR > errorThreshold && errorG > errorThreshold && errorB > errorThreshold)
+                         {
+                             if (finalSampleCount > maxSampleCount)
+                             {
+                                 break;
+                             }
 
-                float errorR = BIGFLOAT;
-                float errorG = BIGFLOAT;
-                float errorB = BIGFLOAT;
+                             Color sample = takeSample(x, y, finalSampleCount, hitInf);
+                             S1 += sample;
+                             S2 += Vec3f(pow(sample.r, 2), pow(sample.g, 2), pow(sample.b, 2));
 
-                
-                // initalRays(pixelIndex, wsTransMatrix);   
-                int finalSampleCount = 0;
-                while(errorR > errorThreshold && errorG > errorThreshold && errorB > errorThreshold)
-                {
-                    if(finalSampleCount > maxSampleCount){
-                        break;
-                    }
+                             finalSampleCount++;
 
-                    Color sample = takeSample(x, y, finalSampleCount, hitInf); 
-                    S1 += sample; 
-                    S2 += Vec3f(pow(sample.r, 2), pow(sample.g, 2), pow(sample.b, 2));
-                    
-                    finalSampleCount++;
+                             if (finalSampleCount < minSampleCount)
+                             {
+                                 continue;
+                             }
 
-                    if(finalSampleCount < minSampleCount){
-                        continue;
-                    }
+                             float stanDevR = (1.0 / (finalSampleCount - 1)) * (S2.x - ((pow(S1.r, 2.0)) / finalSampleCount));
+                             float stanDevG = (1.0 / (finalSampleCount - 1)) * (S2.y - ((pow(S1.g, 2.0)) / finalSampleCount));
+                             float stanDevB = (1.0 / (finalSampleCount - 1)) * (S2.z - ((pow(S1.b, 2.0)) / finalSampleCount));
 
-                    float stanDevR = (1.0/(finalSampleCount - 1)) * (S2.x - ((pow(S1.r, 2.0))/finalSampleCount));
-                    float stanDevG = (1.0/(finalSampleCount - 1)) * (S2.y - ((pow(S1.g, 2.0))/finalSampleCount));
-                    float stanDevB = (1.0/(finalSampleCount - 1)) * (S2.z - ((pow(S1.b, 2.0))/finalSampleCount));
+                             // Color standardDeviation = (1/(finalSampleCount - 1)) * (S2 - ((pow(S1.r, 2), pow(S1.g, 2), pow(S1.b, 2))/finalSampleCount));
 
-                    // Color standardDeviation = (1/(finalSampleCount - 1)) * (S2 - ((pow(S1.r, 2), pow(S1.g, 2), pow(S1.b, 2))/finalSampleCount));
+                             errorR = tValues[finalSampleCount - 1] * (sqrt(stanDevR) / sqrt(finalSampleCount));
+                             errorG = tValues[finalSampleCount - 1] * (sqrt(stanDevG) / sqrt(finalSampleCount));
+                             errorB = tValues[finalSampleCount - 1] * (sqrt(stanDevB) / sqrt(finalSampleCount));
+                         }
 
-                    errorR = tValues[finalSampleCount-1] * (sqrt(stanDevR)/sqrt(finalSampleCount));
-                    errorG = tValues[finalSampleCount-1] * (sqrt(stanDevG)/sqrt(finalSampleCount));
-                    errorB = tValues[finalSampleCount-1] * (sqrt(stanDevB)/sqrt(finalSampleCount));
-                }
+                         int numPixel = y * imageWidth + x;
 
-                int numPixel = y*imageWidth + x;
+                         pixels[numPixel] = (Color24)(S1 / finalSampleCount);
+                         zBuf[numPixel] = hitInf.z;
+                         sampleCount[numPixel] = finalSampleCount;
 
-                pixels[numPixel] = (Color24) (S1/finalSampleCount);
-                zBuf[numPixel] = hitInf.z;
-                sampleCount[numPixel] = finalSampleCount;
-                
-                // printf("samples is %d\n", finalSampleCount);
-                renderImage.IncrementNumRenderPixel(1);
-            
-            }
-        };
-                
-        for (int t = 0; t < numThreads; t++)
-        {
-            threads.emplace_back(trace);
-        }
+                         // printf("samples is %d\n", finalSampleCount);
+                         renderImage.IncrementNumRenderPixel(1);
+                     }
+                 };
 
-        for(auto& th : threads) th.join();
+                 for (int t = 0; t < numThreads; t++)
+                 {
+                     threads.emplace_back(trace);
+                 }
 
-        
-        sceneImage.ComputeZBufferImage();
-        sceneImage.ComputeSampleCountImage();
-        sceneImage.SaveSampleCountImage("sampleImage.png");
-        sceneImage.SaveImage("renderedImage.png");
-        
-    });
+                 for (auto &th : threads)
+                     th.join();
+
+                 sceneImage.ComputeZBufferImage();
+                 sceneImage.ComputeSampleCountImage();
+                 sceneImage.SaveSampleCountImage("sampleImage.png");
+                 sceneImage.SaveImage("renderedImage.png");
+             });
 
     t.detach();
-
-
 }
-
-
 
 Color RayTracer::takeSample(int x, int y, int i, HitInfo &hitInf)
 {
@@ -214,15 +205,15 @@ Color RayTracer::takeSample(int x, int y, int i, HitInfo &hitInf)
 
     Ray currentRay;
 
-    //Camera location
+    // Camera location
     currentRay.p = cam.pos;
 
-    //Generate rays from camera
-    //get to the top corner of the image, move over half pixel each time
-    auto rayX = -(wsWidth/2) + ((wsWidth* (x + 1/2 + ranX) / imageWidth)) ;
-    auto rayY = (wsHeight/2) - ((wsHeight* (y + 1/2 + ranY) / imageHeight)) ;
+    // Generate rays from camera
+    // get to the top corner of the image, move over half pixel each time
+    auto rayX = -(wsWidth / 2) + ((wsWidth * (x + 1 / 2 + ranX) / imageWidth));
+    auto rayY = (wsHeight / 2) - ((wsHeight * (y + 1 / 2 + ranY) / imageHeight));
 
-    currentRay.dir.Set(rayX, rayY, -camOffset); //calculate the direction
+    currentRay.dir.Set(rayX, rayY, -camOffset); // calculate the direction
 
     // currentRay.p = Vec3f(wsTransMatrix * Vec4f(currentRay.p, 0.0));
     currentRay.dir = Vec3f(wsTransMatrix * Vec4f(currentRay.dir, 0.0));
@@ -230,10 +221,9 @@ Color RayTracer::takeSample(int x, int y, int i, HitInfo &hitInf)
 
     hitInf.Init();
     hitInf.node = &rootNode;
-    
+
     return rayCalculation.shootRay(x, y, currentRay, hitInf, i);
 }
-
 
 // void RayTracer::initalRays(int i, Matrix4f wsTransMatrix){
 
@@ -266,7 +256,7 @@ Color RayTracer::takeSample(int x, int y, int i, HitInfo &hitInf)
 
 //         hitInf.Init();
 //         hitInf.node = &rootNode;
-        
+
 //         finalColor += rayCalculation.shootRay(x, y, currentRay, hitInf);
 //     }
 
@@ -276,5 +266,4 @@ Color RayTracer::takeSample(int x, int y, int i, HitInfo &hitInf)
 //     zBuf[numPixel] = hitInf.z;
 // }
 
-
-void StopRender(){}
+void StopRender() {}

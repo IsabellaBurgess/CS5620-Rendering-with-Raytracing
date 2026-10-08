@@ -23,8 +23,5 @@ public:
     Color TraceSecondaryRay( Ray const &ray, float &dist, bool reflection, bool montCarlo) const override; 
 
     bool CanBounce() const override;
-
-//kl
-
 };
 #endif 
